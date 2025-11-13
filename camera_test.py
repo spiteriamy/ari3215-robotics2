@@ -1,7 +1,7 @@
 import cv2
 
 # For USB camera, usually index 0 or 1
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
 # If it's a PiCamera using libcamera, try:
 # cap = cv2.VideoCapture("libcamerasrc ! videoconvert ! appsink", cv2.CAP_GSTREAMER)
