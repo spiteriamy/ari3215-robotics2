@@ -1,21 +1,12 @@
 import cv2
-import mediapipe as mp
-
-# Initialize Mediapipe modules
-mp_drawing = mp.solutions.drawing_utils
-mp_drawing_styles = mp.solutions.drawing_styles
-mp_hands = mp.solutions.hands
+from mediapipe.python.solutions import drawing_utils as mp_drawing
+from mediapipe.python.solutions import drawing_styles as mp_drawing_styles
+from mediapipe.python.solutions import hands as mp_hands
 
 # Open webcam
 cap = cv2.VideoCapture(0)
 
-with mp_hands.Hands(
-    static_image_mode=False,
-    max_num_hands=2,  # Allow up to 2 hands
-    model_complexity=1,
-    min_detection_confidence=0.5,
-    min_tracking_confidence=0.5
-) as hands:
+with mp_hands.Hands() as hands:
 
     while cap.isOpened():
         success, image = cap.read()
@@ -98,3 +89,4 @@ with mp_hands.Hands(
 
 cap.release()
 cv2.destroyAllWindows()
+
