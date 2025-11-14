@@ -1,4 +1,5 @@
 import cv2
+import mediapipe as mp
 from mediapipe.python.solutions import drawing_utils as mp_drawing
 from mediapipe.python.solutions import drawing_styles as mp_drawing_styles
 from mediapipe.python.solutions import hands as mp_hands
@@ -19,7 +20,7 @@ with mp_hands.Hands() as hands:
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         # Process image for hand detection
-        results = hands.process(image_rgb)
+        results: mp.python.solution_base.SolutionOutputs = hands.process(image_rgb)
 
         left_hand = None
         right_hand = None
@@ -42,7 +43,7 @@ with mp_hands.Hands() as hands:
             mp_drawing.draw_landmarks(
                 image,
                 left_hand,
-                mp_hands.HAND_CONNECTIONS,
+                list(mp_hands.HAND_CONNECTIONS),
                 mp_drawing_styles.get_default_hand_landmarks_style(),
                 mp_drawing_styles.get_default_hand_connections_style(),
             )
@@ -73,7 +74,7 @@ with mp_hands.Hands() as hands:
             mp_drawing.draw_landmarks(
                 image,
                 right_hand,
-                mp_hands.HAND_CONNECTIONS,
+                list(mp_hands.HAND_CONNECTIONS),
                 mp_drawing_styles.get_default_hand_landmarks_style(),
                 mp_drawing_styles.get_default_hand_connections_style(),
             )
