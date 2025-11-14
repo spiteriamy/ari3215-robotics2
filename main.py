@@ -3,6 +3,7 @@ import mediapipe as mp
 from mediapipe.python.solutions import drawing_utils as mp_drawing
 from mediapipe.python.solutions import drawing_styles as mp_drawing_styles
 from mediapipe.python.solutions import hands as mp_hands
+import instruction_decoder as dc
 
 # Open webcam
 cap = cv2.VideoCapture(0)
@@ -54,7 +55,7 @@ with mp_hands.Hands() as hands:
                 landmark.y *= cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
                 landmark.z *= cap.get(cv2.CAP_PROP_FRAME_WIDTH)
             
-            print(type(left_hand))
+            dc.decode_command_gesture(left_hand)
 
             # hand_base_xyz:list[float] = [
             #     left_hand.landmark[mp_hands.HandLandmark.WRIST].x*cap.get(cv2.CAP_PROP_FRAME_WIDTH),
