@@ -37,7 +37,8 @@ def decode_command_gesture(left_hand: dict[str, list[tuple[float, float, float]]
                 'points': list(f_pts)
             }
         
-    print(f'open: {f_name}')
+    # print(f'open: {f_name}')
+    print(f"open finger: {open_finger['name']}")
         
 
 def euclid_d(p1, p2) -> float:
