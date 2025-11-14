@@ -17,22 +17,38 @@ class robotcmd(Enum):
     stop = 'stop'
     secret = 'secret'
 
-def decode_command_gesture(hand_landmarks):
+def decode_command_gesture(left_hand: dict[str, list[tuple[float, float, float]]]):
     # 1ST STEP: find out which finger is open
-    open_finger = None
-    for finger in hand_landmarks: # loop for each finger in the hand
+    open_finger: dict = {
+        'name': None,
+        'distance': 0.0,
+        'points': []
+    }
+
+    for f_name, f_pts in left_hand.items(): # loop for each finger in the hand
         # calculate distance from the knuckle to the fingertip
-        tip_to_knuckle = euclid_d(finger[mp_hands.HandLandmark[finger.name + '_TIP']], finger[mp_hands.HandLandmark[finger.name + '_MCP']])
+        tip_to_knuckle = euclid_d(f_pts[-1], f_pts[0])
         
         # if this distance is greater than the previous max, update
-        if open_finger is None or tip_to_knuckle > open_finger[1]:
-            open_finger = (finger.name, tip_to_knuckle)
+        if open_finger['name'] is None or open_finger['distance'] < tip_to_knuckle:
+            open_finger = {
+                'name': f_name,
+                'distance': tip_to_knuckle,
+                'points': list(f_pts)
+            }
         
-        print(f'open{finger.name}')
+    print(f'open: {f_name}')
         
 
 def euclid_d(p1, p2) -> float:
-    return ((p2.x - p1.x)**2 + (p2.y - p1.y)**2 + (p2.z - p1.z)**2)**0.5
+
+    if len(p1) != len(p2):
+        raise ValueError("Points must have the same dimension")
+
+    sum_sq = 0.0
+    for i in range(len(p1)):
+        sum_sq += (p1[i]-p2[i])**2
+    return sum_sq**0.5
 
 def decode_duration_gesture(hand_landmarks):
     pass

@@ -21,14 +21,14 @@ with mp_hands.Hands() as hands:
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         # Process image for hand detection
-        results: mp.python.solution_base.SolutionOutputs = hands.process(image_rgb)
+        results = hands.process(image_rgb)
 
         left_hand = None
         right_hand = None
 
-        if results.multi_hand_landmarks and results.multi_handedness:
+        if results.multi_hand_landmarks and results.multi_handedness:  # type: ignore
             for hand_landmarks, handedness in zip(
-                reversed(results.multi_hand_landmarks), reversed(results.multi_handedness)
+                reversed(results.multi_hand_landmarks), reversed(results.multi_handedness)  # type: ignore
             ):
                 label = handedness.classification[0].label  # "Left" or "Right"
 
@@ -55,7 +55,45 @@ with mp_hands.Hands() as hands:
                 landmark.y *= cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
                 landmark.z *= cap.get(cv2.CAP_PROP_FRAME_WIDTH)
             
-            dc.decode_command_gesture(left_hand)
+            left_hand_obj: dict[str, list[tuple[float, float, float]]] = {
+                'wrist': [
+                    (left_hand.landmark[0].x,
+                     left_hand.landmark[0].y,
+                     left_hand.landmark[0].z)
+                ],
+                'thumb': [
+                    (left_hand.landmark[i].x,
+                     left_hand.landmark[i].y,
+                     left_hand.landmark[i].z)
+                    for i in range(1, 5)
+                ],
+                'index': [
+                    (left_hand.landmark[i].x,
+                     left_hand.landmark[i].y,
+                     left_hand.landmark[i].z)
+                    for i in range(5, 9)
+                ],
+                'middle': [
+                    (left_hand.landmark[i].x,
+                     left_hand.landmark[i].y,
+                     left_hand.landmark[i].z)
+                    for i in range(9, 13)
+                ],
+                'ring': [
+                    (left_hand.landmark[i].x,
+                     left_hand.landmark[i].y,
+                     left_hand.landmark[i].z)
+                    for i in range(13, 17)
+                ],
+                'pinky': [
+                    (left_hand.landmark[i].x,
+                     left_hand.landmark[i].y,
+                     left_hand.landmark[i].z)
+                    for i in range(17, 21)
+                ],
+            }
+            
+            dc.decode_command_gesture(left_hand_obj)
 
             # hand_base_xyz:list[float] = [
             #     left_hand.landmark[mp_hands.HandLandmark.WRIST].x*cap.get(cv2.CAP_PROP_FRAME_WIDTH),
@@ -69,7 +107,6 @@ with mp_hands.Hands() as hands:
             #     left_hand.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].z*cap.get(cv2.CAP_PROP_FRAME_WIDTH),
             # ]
 
-            print(f"wrist: {left_hand.landmark[mp_hands.HandLandmark.WRIST].x}, index: {left_hand.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].x}")
 
         if right_hand:
             mp_drawing.draw_landmarks(
