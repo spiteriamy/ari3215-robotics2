@@ -9,6 +9,7 @@ Secret::=           ??? 🤔💭
 from enum import Enum
 from mediapipe.python.solutions import hands as mp_hands
 
+
 class robotcmd(Enum):
     left = 'left'
     right = 'right'
@@ -16,6 +17,7 @@ class robotcmd(Enum):
     bwd = 'backward'
     stop = 'stop'
     secret = 'secret'
+
 
 def decode_command_gesture(left_hand: dict[str, list[tuple[float, float, float]]]):
     # 1ST STEP: find out which finger is open
@@ -25,21 +27,21 @@ def decode_command_gesture(left_hand: dict[str, list[tuple[float, float, float]]
         'points': []
     }
 
-    for f_name, f_pts in left_hand.items(): # loop for each finger in the hand
+    for f_name, f_pts in left_hand.items():  # loop for each finger in the hand
         # calculate distance from the knuckle to the fingertip
-        tip_to_knuckle = euclid_d(f_pts[-1], f_pts[0])
-        
+        tip_to_wrist = euclid_d(f_pts[-1], left_hand['wrist'][0])
+
         # if this distance is greater than the previous max, update
-        if open_finger['name'] is None or open_finger['distance'] < tip_to_knuckle:
+        if open_finger['name'] is None or open_finger['distance'] < tip_to_wrist:
             open_finger = {
                 'name': f_name,
-                'distance': tip_to_knuckle,
+                'distance': tip_to_wrist,
                 'points': list(f_pts)
             }
-        
+
     # print(f'open: {f_name}')
     print(f"open finger: {open_finger['name']}")
-        
+
 
 def euclid_d(p1, p2) -> float:
 
@@ -50,6 +52,7 @@ def euclid_d(p1, p2) -> float:
     for i in range(len(p1)):
         sum_sq += (p1[i]-p2[i])**2
     return sum_sq**0.5
+
 
 def decode_duration_gesture(hand_landmarks):
     pass
