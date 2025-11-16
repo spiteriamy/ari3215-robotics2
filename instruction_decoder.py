@@ -55,4 +55,5 @@ def euclid_d(p1, p2) -> float:
 
 
 def decode_duration_gesture(hand_landmarks):
+    # to count open maybe get dist from wrist->mcp->pip->dip->tip, then compare to straight wrist->tip
     pass
