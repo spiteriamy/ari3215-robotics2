@@ -4,8 +4,6 @@ from mediapipe.python.solutions import drawing_utils as mp_drawing
 from mediapipe.python.solutions import drawing_styles as mp_drawing_styles
 from mediapipe.python.solutions import hands as mp_hands
 import instruction_decoder as dc
-# import instruction_decoder_copy as dc
-
 
 
 # choose between webcam or video file
@@ -57,12 +55,19 @@ with mp_hands.Hands() as hands:
                 elif label == "Right" and right_hand is None:
                     right_hand = hand_landmarks
 
-        if left_hand:
+        if left_hand and right_hand:
 
             # Draw the detected hands
             mp_drawing.draw_landmarks(
                 image,
                 left_hand,
+                list(mp_hands.HAND_CONNECTIONS),
+                mp_drawing_styles.get_default_hand_landmarks_style(),
+                mp_drawing_styles.get_default_hand_connections_style(),
+            )
+            mp_drawing.draw_landmarks(
+                image,
+                right_hand,
                 list(mp_hands.HAND_CONNECTIONS),
                 mp_drawing_styles.get_default_hand_landmarks_style(),
                 mp_drawing_styles.get_default_hand_connections_style(),
@@ -112,29 +117,6 @@ with mp_hands.Hands() as hands:
                 ],
             }
 
-            dc.decode_command_gesture(left_hand_obj)
-
-            # hand_base_xyz:list[float] = [
-            #     left_hand.landmark[mp_hands.HandLandmark.WRIST].x*cap.get(cv2.CAP_PROP_FRAME_WIDTH),
-            #     left_hand.landmark[mp_hands.HandLandmark.WRIST].y*cap.get(cv2.CAP_PROP_FRAME_HEIGHT),
-            #     left_hand.landmark[mp_hands.HandLandmark.WRIST].z,
-            # ]
-
-            # index_xyz:list[float] = [
-            #     left_hand.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].x*cap.get(cv2.CAP_PROP_FRAME_WIDTH),
-            #     left_hand.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].y*cap.get(cv2.CAP_PROP_FRAME_HEIGHT),
-            #     left_hand.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].z*cap.get(cv2.CAP_PROP_FRAME_WIDTH),
-            # ]
-
-        if right_hand:
-            mp_drawing.draw_landmarks(
-                image,
-                right_hand,
-                list(mp_hands.HAND_CONNECTIONS),
-                mp_drawing_styles.get_default_hand_landmarks_style(),
-                mp_drawing_styles.get_default_hand_connections_style(),
-            )
-
             for landmark in right_hand.landmark:
                 landmark.x *= cap.get(cv2.CAP_PROP_FRAME_WIDTH)
                 landmark.y *= cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
@@ -178,7 +160,7 @@ with mp_hands.Hands() as hands:
                 ],
             }
 
-            print(dc.count_fingers(right_hand_obj))
+            print(dc.decode_commands_with_angle(left_hand_obj, right_hand_obj))
 
         # Display results
         cv2.imshow("Hand Detection (1 Left + 1 Right)", image)

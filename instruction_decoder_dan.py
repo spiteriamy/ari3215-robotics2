@@ -12,7 +12,6 @@ from mediapipe.python.solutions import hands as mp_hands
 # THRESHOLDS HYPERPARAMS
 THRESH_FINGER_OPEN = 0.6  # distance ratio to consider finger open
 THRESH_THUMB_OPEN = 0.8  # distance ratio to consider thumb open
-THRESH_FIST_CLOSED = 0.7  # max distance ratio to consider fist closed
 
 
 class robotcmd(Enum):

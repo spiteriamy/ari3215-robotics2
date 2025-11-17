@@ -13,37 +13,42 @@ from mediapipe.python.solutions import hands as mp_hands
 # THRESHOLDS HYPERPARAMS
 THRESH_FINGER_OPEN = 0.6  # distance ratio to consider finger open
 THRESH_THUMB_OPEN = 0.85  # distance ratio to consider thumb open
-THRESH_FIST_CLOSED = 0.7  # max distance ratio to consider fist closed
+
+DEBUG = False
 
 
 class robotcmd(Enum):
-    left = 'left'
-    right = 'right'
-    fwd = 'forward'
-    bwd = 'backward'
-    stop = 'stop'
-    secret = 'secret'
-    nocmd = '/'
+    stop = 0
+    fwd = 1
+    bwd = 2
+    left = 3
+    right = 4
+    secret = 5
+    nocmd = -1
 
 
 def decode_command_gesture(left_hand: dict[str, list[tuple[float, float, float]]]) -> robotcmd:
-    # for stop command - fist
-    # finger count needs to be 0
-    open_fingers = count_fingers(left_hand)
-    print(open_fingers, end=' ')
 
+    # FIRST STEP: count open fingers
+    open_fingers = count_fingers(left_hand)
+    print(open_fingers, end=' ') if DEBUG else None
+
+    # if all fingers are closed -> fist
     if open_fingers == 0:
-        # command = stop
-        print('stop')
-        return robotcmd.stop
+        print('stop') if DEBUG else None
+        return robotcmd.stop  # return stop command
+
+    # if all fingers are open -> secret
     elif open_fingers == 5:
-        print('secret')
-        return robotcmd.secret
+        print('secret') if DEBUG else None
+        return robotcmd.secret  # return secret command
+
+    # if 2-4 fingers are open -> no command
     elif 4 >= open_fingers >= 2:
-        print('no command')
-        return robotcmd.nocmd
-    
-    # 1ST STEP: find out which finger is open
+        print('no command') if DEBUG else None
+        return robotcmd.nocmd  # return no command
+
+    # 2ND STEP: find out which finger is open
     open_finger: dict = {
         'name': None,
         'distance': 0.0,
@@ -62,44 +67,94 @@ def decode_command_gesture(left_hand: dict[str, list[tuple[float, float, float]]
                 'points': list(f_pts)
             }
 
-    # the rest of the commands depend on which 
-    # finger and the direction its pointing
+    # 3RD STEP: find which direction the open finger is pointing
 
     # detect finger pointing direction with the angle
-    mcp = open_finger['points'][0]
-    tip = open_finger['points'][-1]
+    angle = get_finger_angle(
+        open_finger['points'][0], open_finger['points'][-1])
 
-    angle = get_finger_angle(mcp, tip)
-    direction = get_finger_direction(angle)
+    # return command based on angle
+    if -120 < angle < -45:
+        print('forward') if DEBUG else None
+        return robotcmd.fwd
 
-    if open_finger['name'] == 'thumb':
-        if direction == 'left':
-            # command = turn left
-            print('turn left')
-            return robotcmd.left
-        elif direction == 'right':
-            # command = turn right
-            print('turn right')
-            return robotcmd.right
-        else:
-            print('NO COMMAND')
-    elif open_finger['name'] == 'index':
-        if direction == 'up':
-            # command = move forward
-            print('move forward')
-            return robotcmd.fwd
-        elif direction == 'down':
-            # command == move backward
-            print('move backward')
-            return robotcmd.bwd
-        else:
-            print('NO COMMAND')
-    else:
-        print('NO COMMAND')
+    if -45 < angle < 45:
+        print('right') if DEBUG else None
+        return robotcmd.right
+
+    if angle > 135 or angle < -120:
+        print('left') if DEBUG else None
+        return robotcmd.left
+
+    if 45 < angle < 135:
+        print('backward') if DEBUG else None
+        return robotcmd.bwd
+
+    return robotcmd.nocmd
 
 
-def decode_duration_gesture():
-    pass
+def decode_commands_with_angle(left_hand: dict[str, list[tuple[float, float, float]]], right_hand: dict[str, list[tuple[float, float, float]]]) -> tuple[robotcmd, int]:
+
+    # get the command from the left hand
+    cmd: robotcmd = decode_command_gesture(left_hand)
+
+    # count open fingers on right hand
+    right_fingers_open = count_fingers(right_hand)
+
+    # if left or right, translate the open fingers to angles
+    if cmd == robotcmd.left or cmd == robotcmd.right:
+        open_finger: dict = {
+            'name': None,
+            'distance': 0.0,
+            'points': []
+        }
+
+        for f_name, f_pts in right_hand.items():  # loop for each finger in the hand
+            # calculate distance from the knuckle to the fingertip
+            tip_to_wrist = euclid_d(f_pts[-1], right_hand['wrist'][0])
+
+            # if this distance is greater than the previous max, update
+            if open_finger['name'] is None or open_finger['distance'] < tip_to_wrist:
+                open_finger = {
+                    'name': f_name,
+                    'distance': tip_to_wrist,
+                    'points': list(f_pts)
+                }
+
+        # detect finger pointing direction with the angle, adjusted to 0 = up
+        angle = get_finger_angle(
+            open_finger['points'][0], open_finger['points'][-1]) + 90
+        
+        if angle > 180:
+            angle -= 360  # convert to -180 to 180 range
+
+        print(f'Angle: {angle}') if DEBUG else None
+
+        return cmd, int(angle)  # ret command and angle
+
+    return cmd, right_fingers_open  # ret command and duration
+
+
+def decode_commands(left_hand: dict[str, list[tuple[float, float, float]]], right_hand: dict[str, list[tuple[float, float, float]]]) -> tuple[robotcmd, int]:
+
+    # get the command from the left hand
+    cmd: robotcmd = decode_command_gesture(left_hand)
+
+    # count open fingers on right hand
+    right_fingers_open = count_fingers(right_hand)
+
+    # if left or right, translate the open fingers to angles
+    if cmd == robotcmd.left or cmd == robotcmd.right:
+        angle = (right_fingers_open + 1) * 30  # each finger = 30 degrees
+
+        if cmd == robotcmd.left:
+            angle = -angle  # negative for left turn
+
+        print(f'Angle: {angle}') if DEBUG else None
+
+        return cmd, angle  # ret command and angle
+
+    return cmd, right_fingers_open  # ret command and duration
 
 
 def euclid_d(p1, p2) -> float:
@@ -152,20 +207,4 @@ def get_finger_angle(mcp, tip):
     dy = tip[1] - mcp[1]
 
     angle = math.degrees(math.atan2(dy, dx))
-    return angle # in degrees
-
-
-def get_finger_direction(angle):
-    if -135 < angle < -45:
-        return 'up'
-
-    if -45 < angle < 45:
-        return 'right'
-
-    if angle > 135 or angle < -135:
-        return 'left'
-
-    if 45 < angle < 135:
-        return 'down'
-
-
+    return angle
