@@ -12,7 +12,8 @@ import instruction_decoder_copy as dc
 VIDEO_PATH: int | str = 'handy_video.mp4'  # 0 for webcam, or provide video file path
 
 # Open video source
-cap = cv2.VideoCapture(VIDEO_PATH)
+# cap = cv2.VideoCapture(VIDEO_PATH)
+cap = cv2.VideoCapture(0)
 
 if not cap.isOpened():
     print(f"Error: Could not open video file: {VIDEO_PATH}")

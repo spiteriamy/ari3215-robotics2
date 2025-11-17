@@ -53,6 +53,8 @@ def decode_command_gesture(left_hand: dict[str, list[tuple[float, float, float]]
     # num_up = count_fingers_up(left_hand)
     # print("Fingers up:", num_up)
 
+    
+
 
     if open_finger['name'] == 'thumb':
         if direction == 'left':
@@ -60,7 +62,7 @@ def decode_command_gesture(left_hand: dict[str, list[tuple[float, float, float]]
             print('turn left')
         elif direction == 'right':
             # command = turn right
-            print('turn rufgt')
+            print('turn right')
         else:
             print('NO COMMAND')
     elif open_finger['name'] == 'index':
@@ -119,75 +121,6 @@ def get_finger_direction(angle): # for testing purposes
         return 'down'
 
 
-def count_fingers_up(hand: dict[str, list[tuple[float, float, float]]]):
-    fingers_up = 0
-
-    palm_center = compute_palm_center(hand)
-
-    for name, pts in hand.items():
-        if name == "wrist": # skip the wrist
-            continue
-
-        mcp = pts[0]
-        pip = pts[1]
-        tip = pts[-1]
-
-        # special handling for thumb since it also points sideways
-        if name == "thumb":
-            # thumb is up if it points horizontally away from palm
-            # works only when thumb is extended horizontally, not straight up
-            # if abs(tip[0] - mcp[0]) > abs(tip[1] - mcp[1]):
-            #     fingers_up += 1
-
-            # thumb extended when palm faces camera
-            # works only when palm faces cam (thumb extended to the right)
-            # if tip[0] > pip[0]:
-            #     fingers_up += 1
-
-            # sometimes counts the thumb as up when its not
-            if thumb_up(pts, palm_center):
-                fingers_up += 1
-        else:
-            # normal vertical finger detection
-            if tip[1] < pip[1] < mcp[1]:
-                fingers_up += 1
-
-    return fingers_up
 
 
-def thumb_up(thumb_pts: list[tuple[float, float, float]], palm_center: tuple[float, float, float]) -> bool:
-    mcp = thumb_pts[0]
-    tip = thumb_pts[-1]
-
-    # calculate the distance of the thumb from the center of the palm
-    d_mcp = euclid_d(mcp, palm_center)
-    d_tip = euclid_d(tip, palm_center)
-
-    # how much further the tip is than the mcp
-    extra = d_tip - d_mcp
-    # print(extra)
-
-    # +ve means the thumb is up -ve means thumb not up
-    return extra > 0.0
-
-
-def compute_palm_center(hand: dict[str, list[tuple[float, float, float]]]):
-    palm_points = []
-
-    # wrist
-    if "wrist" in hand:
-        palm_points.append(hand["wrist"][0])
-
-    # mcp joints for all fingers
-    for fname in ["thumb", "index", "middle", "ring", "pinky"]:
-        if fname in hand:
-            palm_points.append(hand[fname][0])
-
-    # average x, y, z
-    n = len(palm_points)
-    cx = sum(p[0] for p in palm_points) / n
-    cy = sum(p[1] for p in palm_points) / n
-    cz = sum(p[2] for p in palm_points) / n
-
-    return (cx, cy, cz)
 
