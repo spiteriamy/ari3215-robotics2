@@ -9,6 +9,11 @@ Secret::=           ??? 🤔💭
 from enum import Enum
 from mediapipe.python.solutions import hands as mp_hands
 
+# THRESHOLDS HYPERPARAMS
+THRESH_FINGER_OPEN = 0.6  # distance ratio to consider finger open
+THRESH_THUMB_OPEN = 0.8  # distance ratio to consider thumb open
+THRESH_FIST_CLOSED = 0.7  # max distance ratio to consider fist closed
+
 
 class robotcmd(Enum):
     left = 'left'
@@ -54,6 +59,32 @@ def euclid_d(p1, p2) -> float:
     return sum_sq**0.5
 
 
-def decode_duration_gesture(hand_landmarks):
+def decode_duration_gesture(hand_landmarks) -> int:
     # to count open maybe get dist from wrist->mcp->pip->dip->tip, then compare to straight wrist->tip
-    pass
+
+    # var to store no. of open fingers
+    open_fingers: int = 0
+
+    for f_name, f_pts in hand_landmarks.items():
+        if f_name == 'wrist':
+            continue
+
+        # get finger lengths
+        finger_length = euclid_d(f_pts[0], hand_landmarks['wrist'][0])
+        for i in range(len(f_pts)-1):
+            finger_length += euclid_d(f_pts[i], f_pts[i+1])
+
+        # get straight distance wrist->tip
+        wrist_to_tip = euclid_d(f_pts[-1], hand_landmarks['wrist'][0])
+
+        # calculate ratio
+        ratio = wrist_to_tip / finger_length
+
+        # compare to threshold
+        if f_name == 'thumb':
+            if ratio > THRESH_THUMB_OPEN:
+                open_fingers += 1
+        elif ratio > THRESH_FINGER_OPEN:
+            open_fingers += 1
+
+    return open_fingers

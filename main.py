@@ -3,13 +3,19 @@ import mediapipe as mp
 from mediapipe.python.solutions import drawing_utils as mp_drawing
 from mediapipe.python.solutions import drawing_styles as mp_drawing_styles
 from mediapipe.python.solutions import hands as mp_hands
+<<<<<<< HEAD
+import instruction_decoder_dan as dc
+=======
 # import instruction_decoder as dc
 import instruction_decoder_copy as dc
 
+>>>>>>> 422ff5d7d9d3747b2c8d55afd3f2825d63e585e4
 
 
 # choose between webcam or video file
-VIDEO_PATH: int | str = 'handy_video.mp4'  # 0 for webcam, or provide video file path
+# 0 for webcam, or provide video file path
+VIDEO_PATH: int | str = 'handy_video.mp4'
+VIDEO_PATH = 0
 
 # Open video source
 # cap = cv2.VideoCapture(VIDEO_PATH)
@@ -18,7 +24,7 @@ cap = cv2.VideoCapture(0)
 if not cap.isOpened():
     print(f"Error: Could not open video file: {VIDEO_PATH}")
     exit()
-    
+
 
 with mp_hands.Hands() as hands:
 
@@ -44,7 +50,7 @@ with mp_hands.Hands() as hands:
 
         if results.multi_hand_landmarks and results.multi_handedness:  # type: ignore
             for hand_landmarks, handedness in zip(
-                reversed(results.multi_hand_landmarks), reversed( # type: ignore
+                reversed(results.multi_hand_landmarks), reversed(  # type: ignore
                     results.multi_handedness)  # type: ignore
             ):
                 label = handedness.classification[0].label  # "Left" or "Right"
@@ -132,9 +138,51 @@ with mp_hands.Hands() as hands:
                 mp_drawing_styles.get_default_hand_landmarks_style(),
                 mp_drawing_styles.get_default_hand_connections_style(),
             )
-            # print('right hand 🤚')
 
-            # mp_drawing.plot_landmarks(right_hand, mp_hands.HAND_CONNECTIONS)
+            for landmark in right_hand.landmark:
+                landmark.x *= cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+                landmark.y *= cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+                landmark.z *= cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+
+            right_hand_obj: dict[str, list[tuple[float, float, float]]] = {
+                'wrist': [
+                    (right_hand.landmark[0].x,
+                     right_hand.landmark[0].y,
+                     right_hand.landmark[0].z)
+                ],
+                'thumb': [
+                    (right_hand.landmark[i].x,
+                     right_hand.landmark[i].y,
+                     right_hand.landmark[i].z)
+                    for i in range(1, 5)
+                ],
+                'index': [
+                    (right_hand.landmark[i].x,
+                     right_hand.landmark[i].y,
+                     right_hand.landmark[i].z)
+                    for i in range(5, 9)
+                ],
+                'middle': [
+                    (right_hand.landmark[i].x,
+                     right_hand.landmark[i].y,
+                     right_hand.landmark[i].z)
+                    for i in range(9, 13)
+                ],
+                'ring': [
+                    (right_hand.landmark[i].x,
+                     right_hand.landmark[i].y,
+                     right_hand.landmark[i].z)
+                    for i in range(13, 17)
+                ],
+                'pinky': [
+                    (right_hand.landmark[i].x,
+                     right_hand.landmark[i].y,
+                     right_hand.landmark[i].z)
+                    for i in range(17, 21)
+                ],
+            }
+
+            print(dc.decode_duration_gesture(right_hand_obj))
 
         # Display results
         cv2.imshow("Hand Detection (1 Left + 1 Right)", image)
