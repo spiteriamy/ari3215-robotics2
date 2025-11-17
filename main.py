@@ -3,7 +3,9 @@ import mediapipe as mp
 from mediapipe.python.solutions import drawing_utils as mp_drawing
 from mediapipe.python.solutions import drawing_styles as mp_drawing_styles
 from mediapipe.python.solutions import hands as mp_hands
-import instruction_decoder as dc
+# import instruction_decoder as dc
+import instruction_decoder_copy as dc
+
 
 # Open webcam
 cap = cv2.VideoCapture(0)
