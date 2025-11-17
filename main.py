@@ -7,15 +7,28 @@ from mediapipe.python.solutions import hands as mp_hands
 import instruction_decoder_copy as dc
 
 
-# Open webcam
-cap = cv2.VideoCapture(0)
+
+# choose between webcam or video file
+VIDEO_PATH: int | str = 'handy_video.mp4'  # 0 for webcam, or provide video file path
+
+# Open video source
+cap = cv2.VideoCapture(VIDEO_PATH)
+
+if not cap.isOpened():
+    print(f"Error: Could not open video file: {VIDEO_PATH}")
+    exit()
+    
 
 with mp_hands.Hands() as hands:
 
-    while cap.isOpened():
+    while cap.isOpened() or isinstance(VIDEO_PATH, str):
         success, image = cap.read()
         if not success:
-            print("Ignoring empty camera frame.")
+            if isinstance(VIDEO_PATH, str):
+                print("End of video file reached.")
+                cap.set(cv2.CAP_PROP_POS_FRAMES, 0)  # Reset to first frame
+            else:
+                print("Ignoring empty camera frame.")
             continue
 
         # Flip the image horizontally for natural (selfie) view
@@ -30,7 +43,8 @@ with mp_hands.Hands() as hands:
 
         if results.multi_hand_landmarks and results.multi_handedness:  # type: ignore
             for hand_landmarks, handedness in zip(
-                reversed(results.multi_hand_landmarks), reversed(results.multi_handedness)  # type: ignore
+                reversed(results.multi_hand_landmarks), reversed( # type: ignore
+                    results.multi_handedness)  # type: ignore
             ):
                 label = handedness.classification[0].label  # "Left" or "Right"
 
@@ -56,7 +70,7 @@ with mp_hands.Hands() as hands:
                 landmark.x *= cap.get(cv2.CAP_PROP_FRAME_WIDTH)
                 landmark.y *= cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
                 landmark.z *= cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-            
+
             left_hand_obj: dict[str, list[tuple[float, float, float]]] = {
                 'wrist': [
                     (left_hand.landmark[0].x,
@@ -94,7 +108,7 @@ with mp_hands.Hands() as hands:
                     for i in range(17, 21)
                 ],
             }
-            
+
             dc.decode_command_gesture(left_hand_obj)
 
             # hand_base_xyz:list[float] = [
@@ -108,7 +122,6 @@ with mp_hands.Hands() as hands:
             #     left_hand.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].y*cap.get(cv2.CAP_PROP_FRAME_HEIGHT),
             #     left_hand.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].z*cap.get(cv2.CAP_PROP_FRAME_WIDTH),
             # ]
-
 
         if right_hand:
             mp_drawing.draw_landmarks(
@@ -130,4 +143,3 @@ with mp_hands.Hands() as hands:
 
 cap.release()
 cv2.destroyAllWindows()
-
