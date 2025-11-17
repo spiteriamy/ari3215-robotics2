@@ -41,17 +41,39 @@ def decode_command_gesture(left_hand: dict[str, list[tuple[float, float, float]]
     # print(f"open finger: {open_finger['name']}")
 
     # detect finger pointing direction with the angle
-    # mcp = open_finger['points'][0]
-    # tip = open_finger['points'][-1]
+    mcp = open_finger['points'][0]
+    tip = open_finger['points'][-1]
 
-    # angle = get_finger_angle(mcp, tip)
+    angle = get_finger_angle(mcp, tip)
     # print(f"Direction angle = {angle:.2f}")
 
-    # direction = get_finger_direction(angle)
+    direction = get_finger_direction(angle)
     # print(f'pointing {direction}')
 
-    num_up = count_fingers_up(left_hand)
-    print("Fingers up:", num_up)
+    # num_up = count_fingers_up(left_hand)
+    # print("Fingers up:", num_up)
+
+
+    if open_finger['name'] == 'thumb':
+        if direction == 'left':
+            # command = turn left
+            print('turn left')
+        elif direction == 'right':
+            # command = turn right
+            print('turn rufgt')
+        else:
+            print('NO COMMAND')
+    elif open_finger['name'] == 'index':
+        if direction == 'up':
+            # command = move forward
+            print('move forward')
+        elif direction == 'down':
+            # command == move backward
+            print('move backward')
+        else:
+            print('NO COMMAND')
+    else:
+        print('NO COMMAND')
 
         
 
@@ -64,6 +86,7 @@ def euclid_d(p1, p2) -> float:
     for i in range(len(p1)):
         sum_sq += (p1[i]-p2[i])**2
     return sum_sq**0.5
+
 
 def decode_duration_gesture(hand_landmarks):
     pass

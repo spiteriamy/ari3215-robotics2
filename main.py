@@ -3,7 +3,13 @@ import mediapipe as mp
 from mediapipe.python.solutions import drawing_utils as mp_drawing
 from mediapipe.python.solutions import drawing_styles as mp_drawing_styles
 from mediapipe.python.solutions import hands as mp_hands
+<<<<<<< HEAD
 import instruction_decoder_dan as dc
+=======
+# import instruction_decoder as dc
+import instruction_decoder_copy as dc
+
+>>>>>>> 422ff5d7d9d3747b2c8d55afd3f2825d63e585e4
 
 
 # choose between webcam or video file
