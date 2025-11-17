@@ -132,6 +132,9 @@ def decode_commands_with_angle(left_hand: dict[str, list[tuple[float, float, flo
 
         return cmd, int(angle)  # ret command and angle
 
+    if cmd == robotcmd.secret and right_fingers_open != 5:
+        cmd = robotcmd.nocmd  # require both hands for secret
+
     return cmd, right_fingers_open  # ret command and duration
 
 
