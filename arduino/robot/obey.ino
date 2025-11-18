@@ -21,7 +21,7 @@ Servo myservo; // servo object
 
 int pos = SERVO_MIN; // variable to store the servo position
 
-MovementSet move(100);
+MovementSet move(100); // robot movement control
 
 void setup()
 {
@@ -42,6 +42,5 @@ void setup()
 
 void loop()
 {
-    move.turn(90.0f);
-    delay(2000);
+
 }
