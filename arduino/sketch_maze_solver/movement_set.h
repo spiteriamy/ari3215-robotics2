@@ -36,6 +36,9 @@ private:
 
 public:
     int speed; // default speed of the robot
+    float turnThresh = 0.1; // acceptable error for turning
+    int slowThresh = 20; // threshold to start slowing down when turning
+
     MPU6050_getdata gyro;
     Servo servo; // servo object
     HCSR04 *hc;  // ultrasonic sensor object

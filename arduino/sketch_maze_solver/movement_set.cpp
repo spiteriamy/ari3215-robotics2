@@ -87,58 +87,90 @@ void MovementSet::turn(float angle)
     targetYaw = originalYaw + angle;
 
     int originalSpeed = this->speed;
+    bool slowed = false; 
 
-    // turn clockwise (right):
-    if (angle > 0)
+    while(abs(originalYaw - targetYaw) > this->turnThresh )
     {
-        bool slowed = false;
-        while (originalYaw < targetYaw)
-        {
-            // debug
-            // Serial.print("Yaw: ");
-            // Serial.println(originalYaw);
+        // debug
+        Serial.println((String)originalYaw + " " + (String)targetYaw);
 
-            // turn
+        // turn
+        if (angle > 0)
+        {
             rightMov(-1);
             leftMov();
-
-            if (abs(originalYaw - targetYaw) < 20 && !slowed)
-            { // if the angle is too far, turn faster
-                stopMov();
-                slowed = true;
-                delay(50);
-                this->setSpeed(1 * originalSpeed / 2);
-            }
-
-            this->gyro.MPU6050_dveGetEulerAngles(&originalYaw);
         }
-    }
-    // or turn anti-clockwise (left):
-    else
-    {
-        bool slowed = false;
-        while (originalYaw > targetYaw)
+        else
         {
-            // debug
-            // Serial.print("Yaw:");
-            // Serial.println(originalYaw);
-
-            // turn
             rightMov();
             leftMov(-1);
-
-            if (abs(originalYaw - targetYaw) < 20 && !slowed)
-            { // if were close, slow down
-                stopMov();
-                slowed = true;
-                delay(50);
-                this->setSpeed(1 * originalSpeed / 2);
-            }
-            // if the angle is too far, turn faster
-
-            this->gyro.MPU6050_dveGetEulerAngles(&originalYaw);
         }
+
+        if (abs(originalYaw - targetYaw) < this->slowThresh && !slowed)
+        { // if were close, slow down
+            stopMov();
+            delay(50);
+            this->setSpeed(40);
+            slowed = true;
+        }
+
+        this->gyro.MPU6050_dveGetEulerAngles(&originalYaw);
+
+        angle = targetYaw - originalYaw;
+        angle > 180 ? angle -= 360 : angle;
     }
+
+    // // turn clockwise (right):
+    // if (angle > 0)
+    // {
+    //     bool slowed = false;
+    //     while (originalYaw < targetYaw)
+    //     {
+    //         // debug
+    //         // Serial.print("Yaw: ");
+    //         // Serial.println(originalYaw);
+
+    //         // turn
+    //         rightMov(-1);
+    //         leftMov();
+
+    //         if (abs(originalYaw - targetYaw) < 20 && !slowed)
+    //         { // if the angle is too far, turn faster
+    //             stopMov();
+    //             slowed = true;
+    //             delay(50);
+    //             this->setSpeed(1 * originalSpeed / 2);
+    //         }
+
+    //         this->gyro.MPU6050_dveGetEulerAngles(&originalYaw);
+    //     }
+    // }
+    // // or turn anti-clockwise (left):
+    // else
+    // {
+    //     bool slowed = false;
+    //     while (originalYaw > targetYaw)
+    //     {
+    //         // debug
+    //         // Serial.print("Yaw:");
+    //         // Serial.println(originalYaw);
+
+    //         // turn
+    //         rightMov();
+    //         leftMov(-1);
+
+    //         if (abs(originalYaw - targetYaw) < 20 && !slowed)
+    //         { // if were close, slow down
+    //             stopMov();
+    //             slowed = true;
+    //             delay(50);
+    //             this->setSpeed(1 * originalSpeed / 2);
+    //         }
+    //         // if the angle is too far, turn faster
+
+    //         this->gyro.MPU6050_dveGetEulerAngles(&originalYaw);
+    //     }
+    // }
 
     // stop motors
     stopMov();
