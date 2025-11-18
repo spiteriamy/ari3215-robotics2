@@ -23,6 +23,30 @@ int pos = SERVO_MIN; // variable to store the servo position
 
 MovementSet move(100); // robot movement control
 
+void obey(int left, int right)
+{
+    switch (left)
+    {
+        case 0: // stop
+            move.stopMov();
+            break;
+        case 1: // forward
+            move.uniformMov(1);
+            break;
+        case 2: // backward
+            move.uniformMov(-1);
+            break;
+        case 3: // turn left
+            move.turn(-90.0f);
+            break;
+        case 4: // turn right
+            move.turn(90.0f);
+            break;
+        case 5: // secret
+            break;
+    }
+}
+
 void setup()
 {
     Serial.begin(9600);
