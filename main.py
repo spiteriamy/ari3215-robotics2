@@ -7,13 +7,12 @@ import instruction_decoder as dc
 
 
 # choose between webcam or video file
-# 0 for webcam, or provide video file path
-VIDEO_PATH: int | str = 'handy_video.mp4'
-VIDEO_PATH = 0
+# 1 for webcam, or provide video file path
+# VIDEO_PATH: int | str = 'handy_video.mp4'
+VIDEO_PATH = 1
 
 # Open video source
-# cap = cv2.VideoCapture(VIDEO_PATH)
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(VIDEO_PATH)
 
 if not cap.isOpened():
     print(f"Error: Could not open video file: {VIDEO_PATH}")
@@ -58,20 +57,20 @@ with mp_hands.Hands() as hands:
         if left_hand and right_hand:
 
             # Draw the detected hands
-            mp_drawing.draw_landmarks(
-                image,
-                left_hand,
-                list(mp_hands.HAND_CONNECTIONS),
-                mp_drawing_styles.get_default_hand_landmarks_style(),
-                mp_drawing_styles.get_default_hand_connections_style(),
-            )
-            mp_drawing.draw_landmarks(
-                image,
-                right_hand,
-                list(mp_hands.HAND_CONNECTIONS),
-                mp_drawing_styles.get_default_hand_landmarks_style(),
-                mp_drawing_styles.get_default_hand_connections_style(),
-            )
+            # mp_drawing.draw_landmarks(
+            #     image,
+            #     left_hand,
+            #     list(mp_hands.HAND_CONNECTIONS),
+            #     mp_drawing_styles.get_default_hand_landmarks_style(),
+            #     mp_drawing_styles.get_default_hand_connections_style(),
+            # )
+            # mp_drawing.draw_landmarks(
+            #     image,
+            #     right_hand,
+            #     list(mp_hands.HAND_CONNECTIONS),
+            #     mp_drawing_styles.get_default_hand_landmarks_style(),
+            #     mp_drawing_styles.get_default_hand_connections_style(),
+            # )
 
             # decode hand instruction
             for landmark in left_hand.landmark:
@@ -160,10 +159,10 @@ with mp_hands.Hands() as hands:
                 ],
             }
 
-            print(dc.decode_commands_with_angle(left_hand_obj, right_hand_obj))
+            print(dc.decode_commands(left_hand_obj, right_hand_obj))
 
         # Display results
-        cv2.imshow("Hand Detection (1 Left + 1 Right)", image)
+        # cv2.imshow("Hand Detection (1 Left + 1 Right)", image)
 
         if cv2.waitKey(5) & 0xFF == 27:  # ESC to exit
             break
