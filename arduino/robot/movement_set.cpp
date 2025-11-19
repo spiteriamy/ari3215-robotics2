@@ -87,9 +87,11 @@ void MovementSet::turn(float angle)
     targetYaw = originalYaw + angle;
 
     int originalSpeed = this->speed;
-    bool slowed = false; 
+    bool slowed = false;
 
-    while(abs(originalYaw - targetYaw) > this->turnThresh )
+    int look = angle > 0 ? 0 : 180; // determine where to look
+
+    while (abs(originalYaw - targetYaw) > this->turnThresh && !isObstacle(15, look))
     {
         // debug
         Serial.println((String)originalYaw + " " + (String)targetYaw);
@@ -116,61 +118,13 @@ void MovementSet::turn(float angle)
 
         this->gyro.MPU6050_dveGetEulerAngles(&originalYaw);
 
+        // calculate remaining angle
         angle = targetYaw - originalYaw;
         angle > 180 ? angle -= 360 : angle;
+
+        // update look direction
+        look = angle > 0 ? 0 : 180;
     }
-
-    // // turn clockwise (right):
-    // if (angle > 0)
-    // {
-    //     bool slowed = false;
-    //     while (originalYaw < targetYaw)
-    //     {
-    //         // debug
-    //         // Serial.print("Yaw: ");
-    //         // Serial.println(originalYaw);
-
-    //         // turn
-    //         rightMov(-1);
-    //         leftMov();
-
-    //         if (abs(originalYaw - targetYaw) < 20 && !slowed)
-    //         { // if the angle is too far, turn faster
-    //             stopMov();
-    //             slowed = true;
-    //             delay(50);
-    //             this->setSpeed(1 * originalSpeed / 2);
-    //         }
-
-    //         this->gyro.MPU6050_dveGetEulerAngles(&originalYaw);
-    //     }
-    // }
-    // // or turn anti-clockwise (left):
-    // else
-    // {
-    //     bool slowed = false;
-    //     while (originalYaw > targetYaw)
-    //     {
-    //         // debug
-    //         // Serial.print("Yaw:");
-    //         // Serial.println(originalYaw);
-
-    //         // turn
-    //         rightMov();
-    //         leftMov(-1);
-
-    //         if (abs(originalYaw - targetYaw) < 20 && !slowed)
-    //         { // if were close, slow down
-    //             stopMov();
-    //             slowed = true;
-    //             delay(50);
-    //             this->setSpeed(1 * originalSpeed / 2);
-    //         }
-    //         // if the angle is too far, turn faster
-
-    //         this->gyro.MPU6050_dveGetEulerAngles(&originalYaw);
-    //     }
-    // }
 
     // stop motors
     stopMov();
@@ -314,7 +268,6 @@ void MovementSet::stopMov()
 
 void MovementSet::uniformMov(int direction)
 {
-
     rightMov(direction);
     leftMov(direction);
 }
@@ -323,4 +276,25 @@ void MovementSet::resetYaw()
 {
     this->gyro.agz = 0.0; // reset yaw
     this->gyro.gzo = 0;   // reset gyro offset
+}
+
+void MovementSet::isObstacle(int thresh = 10, int where = 90)
+{
+    double distance = hc->dist(); // get the distance from the ultrasonic sensor
+
+    // Serial.println(distance);
+    // avoid front wall if it is too close
+    if (distance < thresh && distance != 0)
+    {
+        this->HALT = true; // set emergency stop flag
+    }
+}
+
+void MovementSet::tweak()
+{
+    // shake head 
+    this->servo.write(90);
+
+    // tweak
+
 }

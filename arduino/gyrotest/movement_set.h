@@ -35,9 +35,11 @@ private:
     void resetYaw();
 
 public:
-    int speed; // default speed of the robot
+    int speed;              // default speed of the robot
     float turnThresh = 0.1; // acceptable error for turning
-    int slowThresh = 20; // threshold to start slowing down when turning
+    int slowThresh = 20;    // threshold to start slowing down when turning
+
+    bool HALT = false; // emergency stop flag
 
     MPU6050_getdata gyro;
     Servo servo; // servo object
@@ -65,6 +67,7 @@ public:
     void turn(float angle);
     void wideTurn(float angle = 90.0f);
 
+    // turn the robot in a given direction, built-in obstacle avoidance
     void turn(int direction);
 
     // stop both motors
@@ -72,5 +75,13 @@ public:
 
     // move both motors at the same speed
     void uniformMov(int direction = 1);
+
+    // tweak tf out
+    void tweak();
+
+    // private method to check for obstacles and avoid them
+    // @param thresh The distance threshold to consider an obstacle (in cm)
+    // @param where The value to pass to the servo to check for obstacles
+    void isObstacle(int thresh = 10, int where = 90);
 };
 #endif
