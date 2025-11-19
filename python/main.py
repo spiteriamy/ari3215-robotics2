@@ -24,7 +24,7 @@ if not cap.isOpened():
 
 # initialise serial for arduino communication
 ser = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
-time.sleep(5)
+time.sleep(5) # wait for arduino
 ser.reset_input_buffer()
 print("Arduino:", ser.readline().decode('utf-8').strip())
 last_send = 0
@@ -176,9 +176,10 @@ with mp_hands.Hands() as hands:
             # format command for arduino
             cmd = cmd.value
             message = f"{cmd},{value}\n"
-            #ser.write(message.encode())
 
-            if time.time() - last_send > 0.1:
+            # instead of sending every time hands are detected
+            # so arduino can keep up
+            if time.time() - last_send > 0.1: 
                 ser.write(message.encode())
                 print("Sent:", message.strip())
                 last_send = time.time()
