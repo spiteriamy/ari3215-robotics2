@@ -65,9 +65,27 @@ void setup()
 
     move.setServo(myservo); // set the servo
     move.setHC(hc);         // set the ultrasonic sensor
+
+    Serial.println("Arduino ready");
 }
 
-void loop()
-{
+void loop() {
+    if (Serial.available() > 0) { 
+        String data = Serial.readStringUntil('\n');
 
+        int commaIndex = data.indexOf(',');
+        if (commaIndex == -1) return;
+
+        int cmd = data.substring(0, commaIndex).toInt();
+        int value = data.substring(commaIndex + 1).toInt();
+
+        // send commands to obey
+        obey(cmd, value);
+
+        // debug
+        Serial.print("Received: ");
+        Serial.print(cmd);
+        Serial.print(" , ");
+        Serial.println(value);
+    }
 }
