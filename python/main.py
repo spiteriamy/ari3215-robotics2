@@ -1,5 +1,6 @@
 import cv2
 import mediapipe as mp
+import serial
 from mediapipe.python.solutions import drawing_utils as mp_drawing
 from mediapipe.python.solutions import drawing_styles as mp_drawing_styles
 from mediapipe.python.solutions import hands as mp_hands
@@ -17,6 +18,11 @@ cap = cv2.VideoCapture(VIDEO_PATH)
 if not cap.isOpened():
     print(f"Error: Could not open video file: {VIDEO_PATH}")
     exit()
+
+
+# initialise serial for arduino communication
+ser = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
+ser.reset_input_buffer()
 
 
 with mp_hands.Hands() as hands:
@@ -159,7 +165,14 @@ with mp_hands.Hands() as hands:
                 ],
             }
 
-            print(dc.decode_commands(left_hand_obj, right_hand_obj))
+            cmd, value = dc.decode_commands(left_hand_obj, right_hand_obj)
+            # print(dc.decode_commands(left_hand_obj, right_hand_obj))
+            print((cmd, value))
+
+            # format command for arduino
+            cmd = cmd.value
+            message = f"{cmd},{value}\n"
+            ser.write(message.encode())
 
         # Display results
         # cv2.imshow("Hand Detection (1 Left + 1 Right)", image)
