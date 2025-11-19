@@ -22,6 +22,14 @@ Servo myservo; // servo object
 
 int pos = SERVO_MID; // variable to store the servo position
 
+int curr_cmd, curr_val, prev_cmd, prev_val; // command and value from serial
+curr_cmd = curr_val = prev_cmd = prev_val = -1;
+unsigned long startTime = 0;
+int duraThresh = -1; // milliseconds
+
+// TODO: change to a5512a55b49b9d87ce6c20261df19dfda92ef45cdcd7398f0d70464f59b5055f2fec249a84b131207d5bc6dcff4ad5db7724e21928e548dfb4dd5664a4f6250c
+int tweak = 1;
+
 MovementSet move(100); // robot movement control
 
 void obey(int left, int right)
@@ -29,24 +37,24 @@ void obey(int left, int right)
     float angles[] = {30.0f, 60.0f, 90.0f, 120.0f, 150.0f, 180.0f};
     switch (left)
     {
-        case 0: // stop
-            move.stopMov();
-            break;
-        case 1: // forward
-            move.uniformMov(1);
-            break;
-        case 2: // backward
-            move.uniformMov(-1);
-            break;
-        case 3: // turn left
-            move.turn(-angles[right]);
-            break;
-        case 4: // turn right
-            move.turn(angles[right]);
-            break;
-        case 5: // secret
-            move.tweak();
-            break;
+    case 0: // stop
+        move.stopMov();
+        break;
+    case 1: // forward
+        move.uniformMov(1);
+        break;
+    case 2: // backward
+        move.uniformMov(-1);
+        break;
+    case 3: // turn left
+        move.turn(-angles[right]);
+        break;
+    case 4: // turn right
+        move.turn(angles[right]);
+        break;
+    case 5: // secret
+        move.tweak();
+        break;
     }
 }
 
@@ -69,23 +77,65 @@ void setup()
     Serial.println("Arduino ready");
 }
 
-void loop() {
-    if (Serial.available() > 0) { 
+void loop()
+{
+    if (Serial.available() > 0)
+    {
         String data = Serial.readStringUntil('\n');
 
         int commaIndex = data.indexOf(',');
-        if (commaIndex == -1) return;
+        if (commaIndex == -1)
+        {
+            return;
+        }
 
-        int cmd = data.substring(0, commaIndex).toInt();
-        int value = data.substring(commaIndex + 1).toInt();
+        // save the previous command and value
+        prev_cmd = curr_cmd;
+        prev_val = curr_val;
 
-        // send commands to obey
-        obey(cmd, value);
+        // parse the current command and value
+        curr_cmd = data.substring(0, commaIndex).toInt();
+        curr_val = data.substring(commaIndex + 1).toInt();
+
+        // send commands to obey if they are different from the previous ones
+        if (!(curr_cmd == prev_cmd || curr_val == prev_val))
+        {
+            if (curr_cmd == 1 || curr_cmd == 2)
+            {
+                startTime = millis();         // get the start time
+                duraThresh = curr_val * 1000; // milliseconds
+
+                // check if time has run out
+                if (millis() - startTime < duraThresh)
+                {
+                    obey(curr_cmd, curr_val);
+                }
+            }
+            else if (curr_cmd == 5){
+                move.turn(tweak);
+                tweak = -tweak;
+            }
+            else
+            {
+                obey(curr_cmd, curr_val);
+            }
+        }
 
         // debug
         Serial.print("Received: ");
-        Serial.print(cmd);
+        Serial.print(curr_cmd);
         Serial.print(" , ");
-        Serial.println(value);
+        Serial.println(curr_val);
+
+        if (millis() - startTime >= duraThresh && duraThresh != -1)
+        {
+            // stop the robot
+            move.stopMov();
+
+            // reset values
+            duraThresh = -1;
+            prev_cmd = -1;
+            prev_val = -1;
+        }
     }
 }

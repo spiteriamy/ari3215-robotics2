@@ -294,11 +294,13 @@ void MovementSet::isObstacle(int thresh = 10, int where = 90)
     }
 }
 
+//NO!
 void MovementSet::tweak()
 {
     // shake head 
     this->servo.write(90);
 
     // tweak
+
 
 }
