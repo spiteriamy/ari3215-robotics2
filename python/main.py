@@ -1,5 +1,7 @@
+#!/usr/bin/env python3
 import cv2
 import mediapipe as mp
+import time
 import serial
 from mediapipe.python.solutions import drawing_utils as mp_drawing
 from mediapipe.python.solutions import drawing_styles as mp_drawing_styles
@@ -22,8 +24,10 @@ if not cap.isOpened():
 
 # initialise serial for arduino communication
 ser = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
+time.sleep(5)
 ser.reset_input_buffer()
-
+print("Arduino:", ser.readline().decode('utf-8').strip())
+last_send = 0
 
 with mp_hands.Hands() as hands:
 
@@ -172,7 +176,18 @@ with mp_hands.Hands() as hands:
             # format command for arduino
             cmd = cmd.value
             message = f"{cmd},{value}\n"
-            ser.write(message.encode())
+            #ser.write(message.encode())
+
+            if time.time() - last_send > 0.1:
+                ser.write(message.encode())
+                print("Sent:", message.strip())
+                last_send = time.time()
+
+                # OPTIONAL: read Arduino reply
+                reply = ser.readline().decode().strip()
+                if reply:
+                    print("Arduino:", reply)
+
 
         # Display results
         # cv2.imshow("Hand Detection (1 Left + 1 Right)", image)
