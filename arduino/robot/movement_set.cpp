@@ -91,7 +91,8 @@ void MovementSet::turn(float angle)
 
     int look = angle > 0 ? 0 : 180; // determine where to look
 
-    while (abs(originalYaw - targetYaw) > this->turnThresh && !isObstacle(15, look))
+    this->isObstacle();
+    while (abs(originalYaw - targetYaw) > this->turnThresh && !this->HALT)
     {
         // debug
         Serial.println((String)originalYaw + " " + (String)targetYaw);
@@ -124,6 +125,9 @@ void MovementSet::turn(float angle)
 
         // update look direction
         look = angle > 0 ? 0 : 180;
+
+        // check for obstacles
+        this->isObstacle();
     }
 
     // stop motors
