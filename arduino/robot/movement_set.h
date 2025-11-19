@@ -63,8 +63,7 @@ public:
     // move the left motor at a given speed
     void leftMov(int direction = 1);
     void leftMov(double speed);
-    // turn the robot at a given angle
-    void turn(float angle);
+
     void wideTurn(float angle = 90.0f);
 
     // turn the robot in a given direction, built-in obstacle avoidance
