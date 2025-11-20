@@ -1,3 +1,4 @@
+
 #include "movement_set.h"
 
 #include <HCSR04.h>
@@ -79,7 +80,26 @@ void setup()
 
 void loop()
 {
-    move.HALT = true;
+    move.HALT = false;
+
+    // avaoid collision
+    int dist = move.hc->dist();
+    if (prev_cmd == 1 && dist < 10 && dist != 0){
+        move.stopMov();
+        move.HALT = true; // do we need this?
+    }
+
+    if (millis() - startTime >= duraThresh && duraThresh != -1)
+    {
+        // stop the robot
+        move.stopMov();
+
+        // reset values
+        duraThresh = -1;
+        prev_cmd = -1;
+        prev_val = -1;
+    }
+
     if (Serial.available() > 0)
     {
         String data = Serial.readStringUntil('\n');
@@ -122,16 +142,6 @@ void loop()
             }
         }
 
-        if (millis() - startTime >= duraThresh && duraThresh != -1)
-        {
-            // stop the robot
-            move.stopMov();
-
-            // reset values
-            duraThresh = -1;
-            prev_cmd = -1;
-            prev_val = -1;
-        }
 
         // debug
         Serial.print("Received: ");
