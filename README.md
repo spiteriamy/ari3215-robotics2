@@ -113,8 +113,6 @@ cd python
 | Closed fist | ✊     | Stop           |
 | Open hand   | 🖐️     | Secret         |
 
----
-
 ### **Right Hand — Duration & Angle Controls**
 
 | Gesture Type                     | Meaning                               | Example                                          |
@@ -129,7 +127,7 @@ cd python
 ## Project Structure
 
 ```css
-project/
+ari3215-robotics2/
 │── arduino/
 │   ├── gyrotest/
 │   └── robot/
