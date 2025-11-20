@@ -22,8 +22,8 @@ Servo myservo; // servo object
 
 int pos = SERVO_MID; // variable to store the servo position
 
-int curr_cmd, curr_val, prev_cmd, prev_val; // command and value from serial
-curr_cmd = curr_val = prev_cmd = prev_val = -1;
+// command and value from serial
+int curr_cmd = -1, curr_val = -1, prev_cmd = -1, prev_val = -1; 
 unsigned long startTime = 0;
 int duraThresh = -1; // milliseconds
 
@@ -53,7 +53,7 @@ void obey(int left, int right)
         move.turn(angles[right]);
         break;
     case 5: // secret
-        move.tweak();
+      //  move.tweak();
         break;
     }
 }
@@ -79,6 +79,7 @@ void setup()
 
 void loop()
 {
+    move.HALT = true;
     if (Serial.available() > 0)
     {
         String data = Serial.readStringUntil('\n');
@@ -103,7 +104,7 @@ void loop()
             if (curr_cmd == 1 || curr_cmd == 2)
             {
                 startTime = millis();         // get the start time
-                duraThresh = curr_val * 1000; // milliseconds
+                duraThresh = (unsigned long)curr_val * 1000; // milliseconds
 
                 // check if time has run out
                 if (millis() - startTime < duraThresh)
@@ -121,12 +122,6 @@ void loop()
             }
         }
 
-        // debug
-        Serial.print("Received: ");
-        Serial.print(curr_cmd);
-        Serial.print(" , ");
-        Serial.println(curr_val);
-
         if (millis() - startTime >= duraThresh && duraThresh != -1)
         {
             // stop the robot
@@ -137,5 +132,12 @@ void loop()
             prev_cmd = -1;
             prev_val = -1;
         }
+
+        // debug
+        Serial.print("Received: ");
+        Serial.print(curr_cmd);
+        Serial.print(" , ");
+        Serial.println(curr_val);
+
     }
 }
