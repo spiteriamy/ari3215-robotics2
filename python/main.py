@@ -173,13 +173,13 @@ with mp_hands.Hands() as hands:
             # print(dc.decode_commands(left_hand_obj, right_hand_obj))
             print((cmd, value))
 
-            # format command for arduino
+            # format command for arduino'
             cmd = cmd.value
             message = f"{cmd},{value}\n"
 
             # instead of sending every time hands are detected
             # so arduino can keep up
-            if time.time() - last_send > 0.1: 
+            if time.time() - last_send > 0.1 and cmd != -1: 
                 ser.write(message.encode())
                 print("Sent:", message.strip())
                 last_send = time.time()
