@@ -177,6 +177,8 @@ with mp_hands.Hands() as hands:
             cmd = cmd.value
             # message = f"{cmd},{value}\n"
 
+            message = None
+
             if cmd == -1:
                 message = None
             elif cmd == 5 and value != 5:
