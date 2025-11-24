@@ -175,11 +175,20 @@ with mp_hands.Hands() as hands:
 
             # format command for arduino'
             cmd = cmd.value
-            message = f"{cmd},{value}\n"
+            # message = f"{cmd},{value}\n"
+
+            if cmd == -1:
+                message = None
+            elif cmd == 5 and value != 5:
+                message = None
+            elif cmd == 0 and value != 0:
+                message = None
+            else:
+                message = f"{cmd},{value}\n"
 
             # instead of sending every time hands are detected
             # so arduino can keep up
-            if time.time() - last_send > 0.1 and cmd != -1: 
+            if time.time() - last_send > 0.1 and cmd != -1 and message != None: 
                 ser.write(message.encode())
                 print("Sent:", message.strip())
                 last_send = time.time()
