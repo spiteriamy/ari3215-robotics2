@@ -77,6 +77,9 @@ void MovementSet::leftMov(double speed)
 
 void MovementSet::turn(float angle)
 {
+    Serial.print("angle=");
+    Serial.print(angle);
+    Serial.print(" ");
     if (angle == 0.0)
     {
         return;
@@ -88,17 +91,22 @@ void MovementSet::turn(float angle)
 
     int originalSpeed = this->speed;
     bool slowed = false;
+    float error = targetYaw - originalYaw;
+
+    //Normalize error
+    while (error > 180) error -= 360;
+    while (error < -180) error += 360;
 
     int look = angle > 0 ? 0 : 180; // determine where to look
 
-    this->isObstacle();
-    while (abs(originalYaw - targetYaw) > this->turnThresh && !this->HALT)
+    //this->isObstacle();
+    while (abs(error) > this->turnThresh && !this->HALT)
     {
         // debug
-        Serial.println((String)originalYaw + " " + (String)targetYaw);
+        // Serial.println((String)originalYaw + " " + (String)targetYaw);
 
         // turn
-        if (angle > 0)
+        if (error > 0)
         {
             rightMov(-1);
             leftMov();
@@ -109,7 +117,7 @@ void MovementSet::turn(float angle)
             leftMov(-1);
         }
 
-        if (abs(originalYaw - targetYaw) < this->slowThresh && !slowed)
+        if (abs(error) < this->slowThresh && !slowed)
         { // if were close, slow down
             stopMov();
             delay(50);
@@ -120,14 +128,20 @@ void MovementSet::turn(float angle)
         this->gyro.MPU6050_dveGetEulerAngles(&originalYaw);
 
         // calculate remaining angle
-        angle = targetYaw - originalYaw;
+        error = targetYaw - originalYaw;
+        while (error > 180) error -= 360;
+        while (error < -180) error += 360;
+
         angle > 180 ? angle -= 360 : angle;
 
         // update look direction
         look = angle > 0 ? 0 : 180;
 
         // check for obstacles
-        this->isObstacle();
+        //this->isObstacle(where=look);
+
+        // please please please work please PLEASE
+        if (abs(error) <= this->turnThresh) this->HALT = true;
     }
 
     // stop motors
@@ -140,7 +154,7 @@ void MovementSet::turn(float angle)
     this->setSpeed(originalSpeed);
 }
 
-void MovementSet::wideTurn(float angle)
+/*void MovementSet::wideTurn(float angle)
 {
     Serial.println("Wide turn");
 
@@ -250,7 +264,7 @@ void MovementSet::wideTurn(float angle)
     delay(100);
     stopMov();
     this->setSpeed(originalSpeed);
-}
+}*/
 
 void MovementSet::turn(int direction)
 {
