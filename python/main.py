@@ -177,8 +177,6 @@ with mp_hands.Hands() as hands:
 
             message = None
 
-            message = None
-
             if cmd == -1:
                 message = None
             elif cmd == 5 and value != 5:
