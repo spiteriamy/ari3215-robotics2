@@ -1,8 +1,5 @@
 #include "movement_set.h"
 
-#include <HCSR04.h>
-#include <Servo.h>
-
 // ultrasonic pins:
 #define TRIG_PIN 13  // the pin to send out the ultrasonic signal
 #define ECHO_PIN 12  // the pin to listen for the echo of the ultrasonic signal
@@ -50,7 +47,7 @@ void obey(int left, int right) {
       break;
     case 3:  // turn left
     case 4:  // turn right
-      float angle = (float)right / 2.0;
+      float angle = (float)right;
       move.turn(angle);
       break;
     case 5:  // secret

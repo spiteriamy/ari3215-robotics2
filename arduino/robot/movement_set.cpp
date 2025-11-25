@@ -93,17 +93,20 @@ void MovementSet::turn(float angle)
     bool slowed = false;
     float error = targetYaw - originalYaw;
 
-    //Normalize error
-    while (error > 180) error -= 360;
-    while (error < -180) error += 360;
+    // Normalize error
+    while (error > 180)
+        error -= 360;
+    while (error < -180)
+        error += 360;
 
     int look = angle > 0 ? 0 : 180; // determine where to look
 
-    //this->isObstacle();
+    // this->isObstacle();
     while (abs(error) > this->turnThresh && !this->HALT)
     {
         // debug
-        // Serial.println((String)originalYaw + " " + (String)targetYaw);
+        Serial.print("error=" + String(error)+ " "); //! DO NOT REMOVE THIS LINE
+        // turning code will break if u remove this line, modify this at your own risk
 
         // turn
         if (error > 0)
@@ -129,8 +132,10 @@ void MovementSet::turn(float angle)
 
         // calculate remaining angle
         error = targetYaw - originalYaw;
-        while (error > 180) error -= 360;
-        while (error < -180) error += 360;
+        while (error > 180)
+            error -= 360;
+        while (error < -180)
+            error += 360;
 
         angle > 180 ? angle -= 360 : angle;
 
@@ -138,10 +143,11 @@ void MovementSet::turn(float angle)
         look = angle > 0 ? 0 : 180;
 
         // check for obstacles
-        //this->isObstacle(where=look);
+        // this->isObstacle(where=look);
 
         // please please please work please PLEASE
-        if (abs(error) <= this->turnThresh) this->HALT = true;
+        if (abs(error) <= this->turnThresh)
+            this->HALT = true;
     }
 
     // stop motors
@@ -308,10 +314,10 @@ void MovementSet::isObstacle(int thresh = 10, int where = 90)
     }
 }
 
-//NO!
+// NO!
 /*void MovementSet::tweak()
 {
-    // shake head 
+    // shake head
     this->servo.write(90);
 
     // tweak
