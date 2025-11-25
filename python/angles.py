@@ -12,11 +12,11 @@ last_send = 0
 # send test commands without hand detection
 
 messages = [
-    f"{3},{30}\n", # left 30
+    f"{3},{-30}\n", # left 30
     f"{4},{30}\n", # right 30
-    f"{3},{90}\n", # left 90
+    f"{3},{-90}\n", # left 90
     f"{4},{90}\n", # right 90
-    f"{3},{180}\n", # left 180
+    f"{3},{-180}\n", # left 180
     f"{4},{180}\n" # right 180
 ]
 
