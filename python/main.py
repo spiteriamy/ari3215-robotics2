@@ -170,12 +170,10 @@ with mp_hands.Hands() as hands:
             }
 
             cmd, value = dc.decode_commands(left_hand_obj, right_hand_obj)
-            # print(dc.decode_commands(left_hand_obj, right_hand_obj))
             print((cmd, value))
 
-            # format command for arduino'
+            # format command for arduino
             cmd = cmd.value
-            # message = f"{cmd},{value}\n"
 
             message = None
 
@@ -190,12 +188,13 @@ with mp_hands.Hands() as hands:
 
             # instead of sending every time hands are detected
             # so arduino can keep up
-            if time.time() - last_send > 0.1 and cmd != -1 and message != None: 
+            send_thresh = 5
+            if time.time() - last_send > send_thresh and cmd != -1 and message != None: 
                 ser.write(message.encode())
                 print("Sent:", message.strip())
                 last_send = time.time()
 
-                # OPTIONAL: read Arduino reply
+                # read Arduino reply
                 reply = ser.readline().decode().strip()
                 if reply:
                     print("Arduino:", reply)

@@ -98,6 +98,19 @@ cd python
 ./main.py
 ```
 
+Common issues when running the program:
+
+- The program cannot find the Arduino:
+  - The Arduino must be plugged into the USB port on the Raspberry Pi
+  - It must appear as /dev/ttyACM0 (not /dev/ttyACM1 or etc.)
+  - Check:
+    ```bash
+    ls /dev/tty*
+    ```
+
+- The program cannot find the camera:
+  - The camera must be plugged into the correct USB port on the Raspberry Pi (1)
+
 ---
 
 ## Command Gestures
