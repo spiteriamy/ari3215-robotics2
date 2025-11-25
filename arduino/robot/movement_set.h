@@ -36,7 +36,7 @@ private:
 
 public:
     int speed;              // default speed of the robot
-    float turnThresh = 0.1; // acceptable error for turning
+    float turnThresh = 1; // acceptable error for turning
     int slowThresh = 20;    // threshold to start slowing down when turning
 
     bool HALT = false; // emergency stop flag
@@ -65,7 +65,7 @@ public:
     void leftMov(double speed);
     // turn the robot at a given angle
 //    void turn(float angle);
-    void wideTurn(float angle = 90.0f);
+    //void wideTurn(float angle = 90.0f);
 
     // turn the robot in a given direction, built-in obstacle avoidance
     void turn(float angle);
