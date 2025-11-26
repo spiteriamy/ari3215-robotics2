@@ -105,7 +105,7 @@ void MovementSet::turn(float angle)
     while (abs(error) > this->turnThresh && !this->HALT)
     {
         // debug
-        Serial.print("error=" + String(error)+ " "); //! DO NOT REMOVE THIS LINE
+        Serial.print("error=" + String(error) + " "); //! DO NOT REMOVE THIS LINE
         // turning code will break if u remove this line, modify this at your own risk
 
         // turn
@@ -164,8 +164,7 @@ void MovementSet::turn(float angle)
 {
     Serial.println("Wide turn");
 
-    if (angle == 0.0)
-    {
+    if (angle == 0.0){
         return;
     } // no turn
 

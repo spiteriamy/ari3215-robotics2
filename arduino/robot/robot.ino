@@ -146,7 +146,6 @@ void loop() {
       } else {
         //Serial.print((float)curr_val);
         obey(curr_cmd, curr_val);
-        delay(5000);
       }
     }
 
@@ -172,6 +171,8 @@ void loop() {
     Serial.print(" ");
     Serial.print(line102 == 1);
     Serial.print(" ");*/
-    Serial.println(line126 == 1);
   }
+  // at the end of loop print newline to send this loop's telemetry to raspi
+  Serial.println();
+
 }
