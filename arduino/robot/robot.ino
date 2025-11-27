@@ -7,7 +7,7 @@
 HCSR04 hc(TRIG_PIN, ECHO_PIN);  // ultrasonic sensor
 
 // servo pins and parameters:
-#define SERVO_PIN 10    // the pin the servo is connected to
+#define SERVO_PIN 11    // the pin the servo is connected to
 #define SERVO_STEP 10   // how many degrees to move the servo each time
 #define SERVO_DELAY 20  // how many milliseconds to wait for the servo to reach the position
 #define SERVO_MIN 0     // the minimum angle of the servo
@@ -29,6 +29,9 @@ int tweak = 1;
 
 // flags
 int line102 = 0, line126 = 0;
+
+// flag for object avoidance
+bool flag = false;  // true if an object has been detected
 
 MovementSet move(100);  // robot movement control
 
@@ -171,8 +174,34 @@ void loop() {
     Serial.print(" ");
     Serial.print(line102 == 1);
     Serial.print(" ");*/
-  }
-  // at the end of loop print newline to send this loop's telemetry to raspi
-  Serial.println();
 
+    // EMERGENCY STOP IF OBSTACLE IS TOO CLOSE WHILE MOVING FORWARD
+    if (curr_cmd == 1) {
+      float dist = move.hc->dist();
+      // if (dist < 10 && dist != 0) {
+      //     move.stopMov();
+      //     move.HALT = true;
+      //     duraThresh = -1;
+      //     Serial.print("EMERGENCY STOP ");
+      // }
+      Serial.println("dist=" + (String)move.hc->dist() + " ");
+      if (dist > 10 || dist <= 0) {
+        // no obstacle detected
+        flag = false;
+        move.HALT = false;
+
+      } else {
+        // Obstacle detected
+        // flag to true
+        flag = true;
+        move.stopMov();
+        move.HALT = true;
+        duraThresh = -1;
+        // Serial.print("dist="+(String)dist+" ");
+      }
+    }
+  }
+
+  // at the end of loop print newline to send this loop's telemetry to raspi
+  // Serial.println("end");
 }
