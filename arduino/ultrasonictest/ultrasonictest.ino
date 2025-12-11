@@ -1,10 +1,16 @@
 #include "movement_set.h"
 
 // ultrasonic pins:
-#define TRIG_PIN 13 // the pin to send out the ultrasonic signal
-#define ECHO_PIN 12 // the pin to listen for the echo of the ultrasonic signal
+#define TRIG_PIN_1 13 // the pin to send out the ultrasonic signal
+#define ECHO_PIN_1 12 // the pin to listen for the echo of the ultrasonic signal
 
-HCSR04 hc(TRIG_PIN, ECHO_PIN); // ultrasonic sensor
+#define BUZZER_PIN 11 // Buzzer pin
+
+#define TRIG_PIN_2 A0 
+#define ECHO_PIN_2 A1
+
+HCSR04 hc1(TRIG_PIN_1, ECHO_PIN_1); // ultrasonic sensor
+HCSR04 hc2(TRIG_PIN_2, ECHO_PIN_2); // ultrasonic sensor 2
 
 // servo pins and parameters:
 #define SERVO_PIN 10   // the pin the servo is connected to
@@ -42,17 +48,38 @@ void setup()
     myservo.attach(SERVO_PIN); // attaches the servo on servo_pin to the servo object
     myservo.write(pos);        // tell servo to go to position in variable 'pos'
 
-    pinMode(ECHO_PIN, INPUT);  // We receive input from the echo pin (World -> Arduino)
-    pinMode(TRIG_PIN, OUTPUT); // We output to the trig pin (Arduino -> World)
+    // Setup Sensor 1
+    pinMode(ECHO_PIN_1, INPUT);
+    pinMode(TRIG_PIN_1, OUTPUT);
+
+    // Setup Sensor 2 (The new one)
+    pinMode(ECHO_PIN_2, INPUT);
+    pinMode(TRIG_PIN_2, OUTPUT);
+
+    pinMode(BUZZER_PIN, OUTPUT);
 
     move.setServo(myservo); // set the servo
-    move.setHC(hc);         // set the ultrasonic sensor
+    // move.setHC(hc);         // set the ultrasonic sensor
 
-    Serial.println("Arduino ready");
+    Serial.println("Arduino ready - Testing Sensor 2");
 }
 
 void loop()
 {
-    Serial.println("dist=" + String(move.hc->dist()));
-    delay(100);
+    // Read from the second sensor directly
+    int dist1 = hc1.dist();
+    delay(50); // Small delay to prevent sensor interference
+    int dist2 = hc2.dist();
+    delay(50); // Small delay to prevent sensor interference
+
+    Serial.println("Sensor 1 dist=" + String(dist1) + " , " + "Sensor 2 dist=" + String(dist2));
+    
+    if (dist1 != 0 || dist2 != 0) {
+        tone(BUZZER_PIN, 500);
+    }
+    else {
+        noTone(BUZZER_PIN);
+    }
+    
+    delay(100); // Small delay to prevent sensor interference
 }
