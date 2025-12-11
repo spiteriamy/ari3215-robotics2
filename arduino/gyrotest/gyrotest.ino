@@ -7,7 +7,7 @@
 #define TRIG_PIN 13 // the pin to send out the ultrasonic signal
 #define ECHO_PIN 12 // the pin to listen for the echo of the ultrasonic signal
 
-HCSR04 hc(TRIG_PIN, ECHO_PIN); // ultrasonic sensor
+HCSR04 hc(TRIG_PIN_1, ECHO_PIN_1); // ultrasonic sensor
 
 // servo pins and parameters:
 #define SERVO_PIN 10   // the pin the servo is connected to
@@ -33,8 +33,8 @@ void setup()
     myservo.attach(SERVO_PIN); // attaches the servo on servo_pin to the servo object
     myservo.write(pos);        // tell servo to go to position in variable 'pos'
 
-    pinMode(ECHO_PIN, INPUT);  // We receive input from the echo pin (World -> Arduino)
-    pinMode(TRIG_PIN, OUTPUT); // We output to the trig pin (Arduino -> World)
+    pinMode(ECHO_PIN_1, INPUT);  // We receive input from the echo pin (World -> Arduino)
+    pinMode(TRIG_PIN_1, OUTPUT); // We output to the trig pin (Arduino -> World)
 
     move.setServo(myservo); // set the servo
     move.setHC(hc);         // set the ultrasonic sensor
