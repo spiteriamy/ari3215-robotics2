@@ -194,6 +194,9 @@ void obey(int left, int right)
 
       move.stopMov();
       move.HALT = true;
+      // these 2 lines causing issue, only turns left/right after a 2nd left/right command
+      // does not turn with the 1st left/right command
+      // but when removed the turning does not work anymore
       duraThresh = -1;
       curr_cmd = -1;
     }
