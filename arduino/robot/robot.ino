@@ -67,6 +67,63 @@ int line102 = 0, line126 = 0;
 
 MovementSet move(100); // robot movement control
 
+
+// ---------------- LED HELPERS ----------------
+void setAllPixels(uint32_t color)
+{
+  pixels.clear();
+  for (int i = 0; i < NUMPIXELS; i++)
+  {
+    pixels.setPixelColor(i, color);
+  }
+  pixels.show();
+}
+
+// Secret flash mode (bit fast)
+bool secretMode = false;
+unsigned long lastFlashMs = 0;
+int flashIndex = 0;
+const unsigned long FLASH_INTERVAL_MS = 75; // bit fast
+
+const int SECRET_COLOR_COUNT = 6;
+uint32_t secretColors[SECRET_COLOR_COUNT];
+
+void initSecretColors()
+{
+  // your “registered” colours
+  secretColors[0] = pixels.Color(255, 0, 0);     // red (halt)
+  secretColors[1] = pixels.Color(128, 0, 128);   // purple (forward)
+  secretColors[2] = pixels.Color(0, 0, 255);     // blue (backward)
+  secretColors[3] = pixels.Color(255, 255, 0);   // yellow (left)
+  secretColors[4] = pixels.Color(0, 255, 0);     // green (right)
+  secretColors[5] = pixels.Color(255, 192, 203); // pink (secret)
+}
+
+void startSecretFlash()
+{
+  secretMode = true;
+  flashIndex = 0;
+  lastFlashMs = 0;
+}
+
+void stopSecretFlash()
+{
+  secretMode = false;
+}
+
+void updateSecretFlash()
+{
+  unsigned long now = millis();
+  if (now - lastFlashMs >= FLASH_INTERVAL_MS)
+  {
+    lastFlashMs = now;
+    setAllPixels(secretColors[flashIndex]);
+    flashIndex = (flashIndex + 1) % SECRET_COLOR_COUNT;
+  }
+}
+// --------------------------------------------
+
+
 void obey(int left, int right)
 {
   pixels.clear(); // Set all pixel colors to 'off'
@@ -75,39 +132,30 @@ void obey(int left, int right)
   {
   case 0: // stop
 
-    for (int i = 0; i < NUMPIXELS; i++)
-    {
-      pixels.setPixelColor(i, pixels.Color(255, 0, 0)); // Turn all pixels red
-    }
-    pixels.show();
+    stopSecretFlash();
+    setAllPixels(pixels.Color(255, 0, 0)); // red
 
     move.stopMov();
     move.HALT = true;
     break;
   case 1: // forward
 
-    for (int i = 0; i < right; i++)
-    {
-      pixels.setPixelColor(i, pixels.Color(255, 128, 0)); // Turn all pixels orange
-    }
+    stopSecretFlash();
+    setAllPixels(pixels.Color(128, 0, 128)); // purple
 
     move.uniformMov(1);
     break;
   case 2: // backward
 
-    for (int i = 0; i < right; i++)
-    {
-      pixels.setPixelColor(i, pixels.Color(0, 0, 255)); // Turn all pixels blue
-    }
+    stopSecretFlash();
+    setAllPixels(pixels.Color(0, 0, 255)); // blue
 
     move.uniformMov(-1);
     break;
   case 3: // turn left
   {
-    for (int i = 0; i < right; i++)
-    {
-      pixels.setPixelColor(i, pixels.Color(255, 255, 0)); // Turn all pixels green
-    }
+    stopSecretFlash();
+    setAllPixels(pixels.Color(255, 255, 0)); // yellow
 
     // turn servo to the left
     slowServoMove(SERVO_CENTER, SERVO_LEFT);
@@ -139,9 +187,6 @@ void obey(int left, int right)
       move.turn(angle);
     }
 
-    // float angle = (float)right;
-    // move.turn(angle);
-
     // turn servo back to center
     slowServoMove(SERVO_LEFT, SERVO_CENTER);
     delay(300);
@@ -150,10 +195,8 @@ void obey(int left, int right)
   }
   case 4: // turn right
   {
-    for (int i = 0; i < right; i++)
-    {
-      pixels.setPixelColor(i, pixels.Color(0, 255, 0)); // Turn all pixels green
-    }
+    stopSecretFlash();
+    setAllPixels(pixels.Color(0, 255, 0)); // green
 
     slowServoMove(SERVO_CENTER, SERVO_RIGHT);
     delay(300);
@@ -166,6 +209,9 @@ void obey(int left, int right)
 
       move.stopMov();
       move.HALT = true;
+      // these 2 lines causing issue, only turns left/right after a 2nd left/right command
+      // does not turn with the 1st left/right command
+      // but when removed the turning does not work anymore
       duraThresh = -1;
       curr_cmd = -1;
     }
@@ -180,9 +226,6 @@ void obey(int left, int right)
       move.turn(angle);
     }
 
-    // float angle = (float)right;
-    // move.turn(angle);
-
     // turn servo back to center
     slowServoMove(SERVO_RIGHT, SERVO_CENTER);
     delay(300);
@@ -191,6 +234,8 @@ void obey(int left, int right)
   }
   case 5: // secret
     //  move.tweak();
+    startSecretFlash();
+    updateSecretFlash();
     break;
   default:
     // do nothing
@@ -233,7 +278,6 @@ void playNokiaRingtone() {
 }
 
 
-
 // Smooth Servo Movement
 void slowServoMove(int fromAngle, int toAngle) {
   int step = (fromAngle < toAngle) ? 1 : -1;
@@ -266,6 +310,9 @@ void setup()
   pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
   pixels.show();  // Turn OFF all pixels ASAP
 
+  initSecretColors();
+  setAllPixels(pixels.Color(0, 0, 0));
+
   Serial.println("Arduino ready");
 }
 
@@ -276,10 +323,20 @@ void loop()
   line102 = 0;
   line126 = 0;
 
+  // keep flashing while secretMode is active
+  if (secretMode)
+  {
+    updateSecretFlash();
+  }
+
   if ((int)millis() - startTime >= duraThresh && duraThresh != -1)
   {
     // stop the robot
     move.stopMov();
+
+    // LED-only: stop flashing + show red
+    stopSecretFlash();
+    setAllPixels(pixels.Color(255, 0, 0));
 
     // reset values
     duraThresh = -1;
@@ -331,7 +388,6 @@ void loop()
           obey(curr_cmd, curr_val);
         }
       }
-      
       else if (curr_cmd == 5)
       {
         if (curr_val == 5)
@@ -343,17 +399,12 @@ void loop()
           playNokiaRingtone();
 
           move.HALT = false;
-
-          // --- your existing secret LED + wiggle ---
-          for (int i = 0; i < NUMPIXELS; i++)
-          {
-            pixels.setPixelColor(i, Wheel(cyclePos & 255));
-          }
-          pixels.show();
-          cyclePos++;
+          obey(5, curr_val);
 
           move.turn(tweak);
           tweak = -tweak;
+
+          cyclePos++;
         }
       }
 
@@ -371,32 +422,14 @@ void loop()
     Serial.print(" , ");
     Serial.print(curr_val);
     Serial.print(" ");
-    /*Serial.print(move.HALT);
-    Serial.print(" ");
-    Serial.print(move.hc->dist());
-    Serial.print(" ");
-    Serial.print(millis() - startTime);
-    Serial.print(" ");
-    Serial.print(duraThresh);
-    Serial.print(" ");
-    Serial.print(prev_cmd);
-    Serial.print(" ");
-    Serial.print(prev_val);
-    Serial.print(" ");
-    Serial.print(line102 == 1);
-    Serial.print(" ");*/
+
   }
 
   // EMERGENCY STOP IF OBSTACLE IS TOO CLOSE WHILE MOVING FORWARD OR BACKWARDS AND NOT ALREADY HALTED
 
   float fwd_dist = hc1.dist();
   float back_dist = hc2.dist();
-  // if (dist < 10 && dist != 0) {
-  //     move.stopMov();
-  //     move.HALT = true;
-  //     duraThresh = -1;
-  //     Serial.print("EMERGENCY STOP ");
-  // }
+
   Serial.println("dist=" + (String)fwd_dist + " ");
 
   // if were going forward, and the obstacle is too close in front
@@ -407,6 +440,11 @@ void loop()
 
     move.stopMov();
     move.HALT = true;
+
+    // LED-only: stop flashing + show red
+    stopSecretFlash();
+    setAllPixels(pixels.Color(255, 0, 0));
+
     duraThresh = -1;
     curr_cmd = -1;
   }
