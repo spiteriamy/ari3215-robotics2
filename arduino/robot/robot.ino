@@ -30,9 +30,14 @@ HCSR04 hc2(TRIG_PIN_2, ECHO_PIN_2); // ultrasonic sensor 2
 #define SERVO_MID 90   // the middle angle of the servo
 #define SERVO_MAX 180  // the maximum angle of the servo
 
+// Servo Angles
+#define SERVO_LEFT 170
+#define SERVO_CENTER 96
+#define SERVO_RIGHT 10
+
 Servo myservo; // servo object
 
-int pos = SERVO_MID; // variable to store the servo position
+int pos = SERVO_CENTER; // variable to store the servo position
 
 // command and value from serial
 int curr_cmd = -1, curr_val = -1, prev_cmd = -1, prev_val = -1;
@@ -89,8 +94,43 @@ void obey(int left, int right)
       pixels.setPixelColor(i, pixels.Color(255, 255, 0)); // Turn all pixels green
     }
 
-    float angle = (float)right;
-    move.turn(angle);
+    // turn servo to the left
+    slowServoMove(SERVO_CENTER, SERVO_LEFT);
+    delay(300);
+
+    // check obstacle from hc
+    float distLeft = hc1.dist();
+
+
+    if (distLeft < 30 && distLeft != 0)
+    {
+      // obstacle detected
+      tone(BUZZER_PIN, 500); // Send 500Hz sound signal
+
+      move.stopMov();
+      move.HALT = true;
+      duraThresh = -1;
+      curr_cmd = -1;
+    }
+    else
+    {
+      // no obstacle detected in back
+      noTone(BUZZER_PIN);
+
+      // obstacleDetected = false;
+      move.HALT = false;
+
+      float angle = (float)right;
+      move.turn(angle);
+    }
+
+    // float angle = (float)right;
+    // move.turn(angle);
+
+    // turn servo back to center
+    slowServoMove(SERVO_LEFT, SERVO_CENTER);
+    delay(300);
+
     break;
   }
   case 4: // turn right
@@ -100,8 +140,38 @@ void obey(int left, int right)
       pixels.setPixelColor(i, pixels.Color(0, 255, 0)); // Turn all pixels green
     }
 
-    float angle = (float)right;
-    move.turn(angle);
+    slowServoMove(SERVO_CENTER, SERVO_RIGHT);
+    delay(300);
+    float distRight = hc1.dist();
+
+    if (distRight < 30 && distRight != 0)
+    {
+      // obstacle detected
+      tone(BUZZER_PIN, 500); // Send 500Hz sound signal
+
+      move.stopMov();
+      move.HALT = true;
+      duraThresh = -1;
+      curr_cmd = -1;
+    }
+    else
+    {
+      // no obstacle detected
+      noTone(BUZZER_PIN);
+
+      move.HALT = false;
+
+      float angle = (float)right;
+      move.turn(angle);
+    }
+
+    // float angle = (float)right;
+    // move.turn(angle);
+
+    // turn servo back to center
+    slowServoMove(SERVO_RIGHT, SERVO_CENTER);
+    delay(300);
+
     break;
   }
   case 5: // secret
@@ -131,6 +201,18 @@ uint32_t Wheel(byte WheelPos)
   return pixels.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
 }
 
+
+// Smooth Servo Movement
+void slowServoMove(int fromAngle, int toAngle) {
+  int step = (fromAngle < toAngle) ? 1 : -1;
+  for (int pos = fromAngle; pos != toAngle; pos += step) {
+    myservo.write(pos);
+    delay(10); // slows down movement
+  }
+  myservo.write(toAngle); // ensure it lands on final angle
+}
+
+
 void setup()
 {
   Serial.begin(9600);
@@ -146,7 +228,7 @@ void setup()
 
   pinMode(BUZZER_PIN, OUTPUT); // buzzer pin
 
-  move.setServo(myservo); // set the servo
+  // move.setServo(myservo); // set the servo
   move.setHC(hc1);        // set the ultrasonic sensor
 
   pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
@@ -161,14 +243,7 @@ void loop()
 
   line102 = 0;
   line126 = 0;
-  /*
-    // avoid collision
-    int dist = move.hc->dist();
-    if (prev_cmd == 1 && dist < 10 && dist != 0){
-        move.stopMov();
-        move.HALT = true; // do we need this?
-    }
-*/
+
   if ((int)millis() - startTime >= duraThresh && duraThresh != -1)
   {
     // stop the robot
@@ -301,21 +376,5 @@ void loop()
     move.HALT = false;
   }
 
-  // else
-  // {
-  //   if (curr_cmd == 1)
-  //   {
-  //     // Obstacle detected
-  //     // flag to true
 
-  //     fwd_obst = true;
-  //     move.stopMov();
-  //     move.HALT = true;
-  //     duraThresh = -1;
-  //     // Serial.print("dist="+(String)dist+" ");
-  //   }
-  // }
-
-  // at the end of loop print newline to send this loop's telemetry to raspi
-  // Serial.println("end");
 }
