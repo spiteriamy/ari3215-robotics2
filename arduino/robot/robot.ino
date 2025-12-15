@@ -1,5 +1,6 @@
 #include "movement_set.h"
 #include <Adafruit_NeoPixel.h>
+#include "pitches.h"
 
 #define PIN A2      // The image shows the green wire connected to Pin 7
 #define NUMPIXELS 5 // Set this to the actual number of LEDs on your strip
@@ -21,6 +22,20 @@ HCSR04 hc2(TRIG_PIN_2, ECHO_PIN_2); // ultrasonic sensor 2
 
 // Buzzer pin:
 #define BUZZER_PIN 11
+
+int melody[] = {
+  NOTE_E5, NOTE_D5, NOTE_FS4, NOTE_GS4, 
+  NOTE_CS5, NOTE_B4, NOTE_D4, NOTE_E4, 
+  NOTE_B4, NOTE_A4, NOTE_CS4, NOTE_E4,
+  NOTE_A4
+};
+
+int durations[] = {
+  8, 8, 4, 4,
+  8, 8, 4, 4,
+  8, 8, 4, 4,
+  2
+};
 
 // servo pins and parameters:
 #define SERVO_PIN 10   // the pin the servo is connected to
@@ -201,6 +216,23 @@ uint32_t Wheel(byte WheelPos)
   return pixels.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
 }
 
+void playNokiaRingtone() {
+  int size = sizeof(durations) / sizeof(durations[0]);
+
+  for (int note = 0; note < size; note++) {
+    int duration = 1000 / durations[note];
+
+    tone(BUZZER_PIN, melody[note], duration);
+
+    // duration + 30% gap
+    int pauseBetweenNotes = (duration * 13) / 10;
+    delay(pauseBetweenNotes);
+
+    noTone(BUZZER_PIN);
+  }
+}
+
+
 
 // Smooth Servo Movement
 void slowServoMove(int fromAngle, int toAngle) {
@@ -299,10 +331,20 @@ void loop()
           obey(curr_cmd, curr_val);
         }
       }
+      
       else if (curr_cmd == 5)
       {
         if (curr_val == 5)
         {
+          noTone(BUZZER_PIN);   // stop any obstacle beep
+          move.stopMov();       // don't drive while we're delaying
+          move.HALT = true;
+
+          playNokiaRingtone();
+
+          move.HALT = false;
+
+          // --- your existing secret LED + wiggle ---
           for (int i = 0; i < NUMPIXELS; i++)
           {
             pixels.setPixelColor(i, Wheel(cyclePos & 255));
@@ -314,6 +356,7 @@ void loop()
           tweak = -tweak;
         }
       }
+
       else
       {
         // Serial.print((float)curr_val);
