@@ -79,7 +79,7 @@ void setAllPixels(uint32_t color)
   pixels.show();
 }
 
-// Secret flash mode (bit fast)
+// Secret flash mode
 bool secretMode = false;
 unsigned long lastFlashMs = 0;
 int flashIndex = 0;
@@ -90,13 +90,12 @@ uint32_t secretColors[SECRET_COLOR_COUNT];
 
 void initSecretColors()
 {
-  // your “registered” colours
-  secretColors[0] = pixels.Color(255, 0, 0);     // red (halt)
-  secretColors[1] = pixels.Color(128, 0, 128);   // purple (forward)
-  secretColors[2] = pixels.Color(0, 0, 255);     // blue (backward)
-  secretColors[3] = pixels.Color(255, 255, 0);   // yellow (left)
-  secretColors[4] = pixels.Color(0, 255, 0);     // green (right)
-  secretColors[5] = pixels.Color(255, 192, 203); // pink (secret)
+  secretColors[0] = pixels.Color(255, 0, 0);     // red
+  secretColors[1] = pixels.Color(128, 0, 128);   // purple
+  secretColors[2] = pixels.Color(0, 0, 255);     // blue
+  secretColors[3] = pixels.Color(255, 255, 0);   // yellow
+  secretColors[4] = pixels.Color(0, 255, 0);     // green
+  secretColors[5] = pixels.Color(255, 192, 203); // pink
 }
 
 void startSecretFlash()
@@ -157,39 +156,9 @@ void obey(int left, int right)
     stopSecretFlash();
     setAllPixels(pixels.Color(255, 255, 0)); // yellow
 
-    // turn servo to the left
-    slowServoMove(SERVO_CENTER, SERVO_LEFT);
-    delay(300);
-
-    // check obstacle from hc
-    float distLeft = hc1.dist();
-
-
-    if (distLeft < 30 && distLeft != 0)
-    {
-      // obstacle detected
-      tone(BUZZER_PIN, 500); // Send 500Hz sound signal
-
-      move.stopMov();
-      move.HALT = true;
-      duraThresh = -1;
-      curr_cmd = -1;
-    }
-    else
-    {
-      // no obstacle detected in back
-      noTone(BUZZER_PIN);
-
-      // obstacleDetected = false;
-      move.HALT = false;
-
-      float angle = (float)right;
-      move.turn(angle);
-    }
-
-    // turn servo back to center
-    slowServoMove(SERVO_LEFT, SERVO_CENTER);
-    delay(300);
+    delay(500);
+    float angle = (float)right;
+    move.turn(angle);
 
     break;
   }
@@ -198,38 +167,10 @@ void obey(int left, int right)
     stopSecretFlash();
     setAllPixels(pixels.Color(0, 255, 0)); // green
 
-    slowServoMove(SERVO_CENTER, SERVO_RIGHT);
-    delay(300);
-    float distRight = hc1.dist();
-
-    if (distRight < 30 && distRight != 0)
-    {
-      // obstacle detected
-      tone(BUZZER_PIN, 500); // Send 500Hz sound signal
-
-      move.stopMov();
-      move.HALT = true;
-      // these 2 lines causing issue, only turns left/right after a 2nd left/right command
-      // does not turn with the 1st left/right command
-      // but when removed the turning does not work anymore
-      duraThresh = -1;
-      curr_cmd = -1;
-    }
-    else
-    {
-      // no obstacle detected
-      noTone(BUZZER_PIN);
-
-      move.HALT = false;
-
-      float angle = (float)right;
-      move.turn(angle);
-    }
-
-    // turn servo back to center
-    slowServoMove(SERVO_RIGHT, SERVO_CENTER);
-    delay(300);
-
+    delay(500);
+    float angle = (float)right;
+    move.turn(angle);
+    
     break;
   }
   case 5: // secret
@@ -406,6 +347,43 @@ void loop()
 
           cyclePos++;
         }
+      }
+
+      else if(curr_cmd == 3 || curr_cmd == 4) {
+        float dist;
+
+        if(curr_cmd == 3) { // leeft
+          slowServoMove(SERVO_CENTER, SERVO_LEFT);
+          delay(300);
+          dist = hc1.dist();
+        }
+        else if(curr_cmd == 4) { // right
+          slowServoMove(SERVO_CENTER, SERVO_RIGHT);
+          delay(300);
+          dist = hc1.dist();
+        }
+        
+        if (dist < 30 && dist != 0) {
+          // obstacle detected
+          tone(BUZZER_PIN, 500); // Send 500Hz sound signal
+
+          move.stopMov();
+          move.HALT = true;
+
+          curr_cmd = -1;
+        }
+        else
+        {
+          // no obstacle detected
+          noTone(BUZZER_PIN);
+
+          move.HALT = false;
+          obey(curr_cmd, curr_val);
+        }
+
+        // turn servo back to center
+        slowServoMove(SERVO_RIGHT, SERVO_CENTER);
+        delay(300);
       }
 
       else
