@@ -79,6 +79,35 @@ void setAllPixels(uint32_t color)
   pixels.show();
 }
 
+// Turn ON only the first N pixels with a given color (rest OFF)
+void setPixelsCount(uint32_t color, int count)
+{
+  pixels.clear();
+
+  // clamp count to valid range
+  if (count < 0) count = 0;
+  if (count > NUMPIXELS) count = NUMPIXELS;
+
+  for (int i = 0; i < count; i++)
+  {
+    pixels.setPixelColor(i, color);
+  }
+  pixels.show();
+}
+
+// If your right value is an ANGLE for turning (30..180),
+// convert that to "finger count" (1..5) just for LEDs.
+int angleToLedCount(int angle)
+{
+  if (abs(angle) == 0)   return 0;
+  if (abs(angle) == 30)  return 1;
+  if (abs(angle) == 60)  return 2;
+  if (abs(angle) == 90)  return 3;
+  if (abs(angle) == 120) return 4;
+  return 5; // 150..180 etc
+}
+
+
 // Secret flash mode (bit fast)
 bool secretMode = false;
 unsigned long lastFlashMs = 0;
@@ -139,23 +168,22 @@ void obey(int left, int right)
     move.HALT = true;
     break;
   case 1: // forward
-
     stopSecretFlash();
-    setAllPixels(pixels.Color(128, 0, 128)); // purple
-
+    setPixelsCount(pixels.Color(128, 0, 128), right); // purple, N LEDs
     move.uniformMov(1);
     break;
+
   case 2: // backward
-
     stopSecretFlash();
-    setAllPixels(pixels.Color(0, 0, 255)); // blue
-
+    setPixelsCount(pixels.Color(0, 0, 255), right); // blue, N LEDs
     move.uniformMov(-1);
     break;
+
   case 3: // turn left
   {
     stopSecretFlash();
-    setAllPixels(pixels.Color(255, 255, 0)); // yellow
+    setPixelsCount(pixels.Color(255, 255, 0), angleToLedCount(right)); // yellow, N LEDs
+
 
     // turn servo to the left
     slowServoMove(SERVO_CENTER, SERVO_LEFT);
@@ -196,7 +224,8 @@ void obey(int left, int right)
   case 4: // turn right
   {
     stopSecretFlash();
-    setAllPixels(pixels.Color(0, 255, 0)); // green
+    setPixelsCount(pixels.Color(0, 255, 0), angleToLedCount(right)); // green, N LEDs
+
 
     slowServoMove(SERVO_CENTER, SERVO_RIGHT);
     delay(300);
