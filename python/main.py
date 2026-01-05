@@ -190,6 +190,7 @@ with mp_hands.Hands() as hands:
             # so arduino can keep up
             send_thresh = 5
             if time.time() - last_send > send_thresh and cmd != -1 and message != None: 
+                print(f"DEBUG: cmd={cmd}, value={value}, message={message.strip()}")
                 ser.write(message.encode())
                 print("Sent:", message.strip())
                 last_send = time.time()
