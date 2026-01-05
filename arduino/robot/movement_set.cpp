@@ -75,14 +75,14 @@ void MovementSet::leftMov(double speed)
     analogWrite(this->leftSpeedPin, abs(speed));
 }
 
-void MovementSet::turn(float angle)
+bool MovementSet::turn(float angle)
 {
     Serial.print("angle=");
     Serial.print(angle);
     Serial.print(" ");
     if (angle == 0.0)
     {
-        return;
+        return false;
     } // no turn
 
     float originalYaw, targetYaw;
@@ -158,6 +158,8 @@ void MovementSet::turn(float angle)
 
     // reset speed
     this->setSpeed(originalSpeed);
+
+    return true; // success
 }
 
 /*void MovementSet::wideTurn(float angle)

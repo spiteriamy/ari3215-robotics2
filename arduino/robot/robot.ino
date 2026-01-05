@@ -158,7 +158,11 @@ void obey(int left, int right)
 
     delay(500);
     float angle = (float)right;
-    move.turn(angle);
+  
+    bool success = move.turn(angle);
+    if (!success) {
+      setAllPixels(pixels.Color(255, 255, 255)); // white
+    }
 
     break;
   }
@@ -169,8 +173,12 @@ void obey(int left, int right)
 
     delay(500);
     float angle = (float)right;
-    move.turn(angle);
-    
+    bool success = move.turn(angle);
+    if (!success)
+    {
+      setAllPixels(pixels.Color(255, 255, 255)); // white
+    }
+
     break;
   }
   case 5: // secret
@@ -342,7 +350,7 @@ void loop()
           move.HALT = false;
           obey(5, curr_val);
 
-          move.turn(tweak);
+          bool success = move.turn(tweak);
           tweak = -tweak;
 
           cyclePos++;
@@ -378,7 +386,7 @@ void loop()
           noTone(BUZZER_PIN);
 
           move.HALT = false;
-          obey(curr_cmd, curr_val);
+          obey(curr_cmd, (float)curr_val);
         }
 
         // turn servo back to center

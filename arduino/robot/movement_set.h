@@ -68,7 +68,7 @@ public:
     //void wideTurn(float angle = 90.0f);
 
     // turn the robot in a given direction, built-in obstacle avoidance
-    void turn(float angle);
+    bool turn(float angle);
     // turn the robot in a given direction
     void turn(int direction);
 
