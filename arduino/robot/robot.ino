@@ -311,7 +311,10 @@ void loop()
 
     // parse the current command and value
     curr_cmd = data.substring(0, commaIndex).toInt();
-    curr_val = data.substring(commaIndex + 1, data.length()).toInt();
+    String val_str = data.substring(commaIndex + 1);
+    Serial.print("val_str:");
+    Serial.print(val_str);
+    curr_val = val_str.toInt();
 
     Serial.print("recieved val:");
     Serial.print(curr_val);
