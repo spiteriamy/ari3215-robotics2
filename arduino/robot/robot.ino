@@ -310,8 +310,10 @@ void loop()
     prev_val = curr_val;
 
     // parse the current command and value
+    Serial.print(commaIndex);
     curr_cmd = data.substring(0, commaIndex).toInt();
-    String val_str = data.substring(commaIndex + 1);
+    Serial.print(data.length());
+    String val_str = data.substring(commaIndex + 1, data.length());
     Serial.print("val_str:");
     Serial.print(val_str);
     curr_val = val_str.toInt();
@@ -353,7 +355,7 @@ void loop()
           move.HALT = false;
           obey(5, curr_val);
 
-          bool success = move.turn(tweak);
+          move.turn(tweak);
           tweak = -tweak;
 
           cyclePos++;
@@ -393,8 +395,15 @@ void loop()
         }
 
         // turn servo back to center
-        slowServoMove(SERVO_RIGHT, SERVO_CENTER);
-        delay(300);
+        if (curr_cmd == 4) {
+          slowServoMove(SERVO_RIGHT, SERVO_CENTER);
+          delay(300);
+        }
+        else if(curr_cmd == 3){
+          slowServoMove(SERVO_LEFT, SERVO_CENTER);
+          delay(300);
+        }
+        
       }
 
       else
@@ -410,7 +419,7 @@ void loop()
     Serial.print(curr_cmd);
     Serial.print(" , ");
     Serial.print(curr_val);
-    Serial.print(" ");
+    Serial.println(" ");
 
   }
 
@@ -419,7 +428,7 @@ void loop()
   float fwd_dist = hc1.dist();
   float back_dist = hc2.dist();
 
-  Serial.println("dist=" + (String)fwd_dist + " ");
+  // Serial.println("dist=" + (String)fwd_dist + " ");
 
   // if were going forward, and the obstacle is too close in front
   if ((curr_cmd == 1 && fwd_dist < 30 && fwd_dist != 0) || (curr_cmd == 2 && back_dist < 30 && back_dist != 0))
