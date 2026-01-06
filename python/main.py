@@ -191,6 +191,7 @@ with mp_hands.Hands() as hands:
             send_thresh = 5
             if time.time() - last_send > send_thresh and cmd != -1 and message != None: 
                 print(f"DEBUG: cmd={cmd}, value={value}, message={message.strip()}")
+                print("message (raw):", message.encode())
                 ser.write(message.encode())
                 ser.flush()
                 print("Sent:", message.strip())
