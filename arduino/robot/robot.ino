@@ -29,10 +29,6 @@ int rickrollMelody[] = {
   NOTE_F5, NOTE_F5, NOTE_E5F, NOTE_B4F, NOTE_B4F, NOTE_A4F, NOTE_A4F, NOTE_E5F, NOTE_E5F, NOTE_C5S, NOTE_C5, NOTE_B4F,
   NOTE_C5S, NOTE_C5S, NOTE_C5S, NOTE_C5S,
   NOTE_C5S, NOTE_E5F, NOTE_C5, NOTE_B4F, NOTE_A4F, NOTE_A4F, NOTE_A4F, NOTE_E5F, NOTE_C5S,
-  NOTE_B4F, NOTE_B4F, NOTE_A4F, NOTE_A4F,
-  NOTE_F5, NOTE_F5, NOTE_E5F, NOTE_B4F, NOTE_B4F, NOTE_A4F, NOTE_A4F, NOTE_A5F, NOTE_C5, NOTE_C5S, NOTE_C5, NOTE_B4F,
-  NOTE_C5S, NOTE_C5S, NOTE_C5S, NOTE_C5S,
-  NOTE_C5S, NOTE_E5F, NOTE_C5, NOTE_B4F, NOTE_A4F, 0, NOTE_A4F, NOTE_E5F, NOTE_C5S, 0
 };
 
 int rickrollDurations[] = {
@@ -40,10 +36,6 @@ int rickrollDurations[] = {
   4, 4, 2, 8, 8, 8, 8, 4, 4, 4, 8, 6,
   8, 8, 8, 8,
   4, 4, 4, 8, 6, 6, 6, 3, 1,
-  8, 8, 8, 8,
-  4, 4, 2, 8, 8, 8, 8, 4, 4, 4, 8, 6,
-  8, 8, 8, 8,
-  4, 4, 4, 8, 6, 6, 6, 3, 1, 3
 };
 
 int melody[] = {
