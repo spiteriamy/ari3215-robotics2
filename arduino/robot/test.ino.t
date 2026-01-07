@@ -79,7 +79,36 @@ void setAllPixels(uint32_t color)
   pixels.show();
 }
 
-// Secret flash mode
+// Turn ON only the first N pixels with a given color (rest OFF)
+void setPixelsCount(uint32_t color, int count)
+{
+  pixels.clear();
+
+  // clamp count to valid range
+  if (count < 0) count = 0;
+  if (count > NUMPIXELS) count = NUMPIXELS;
+
+  for (int i = 0; i < count; i++)
+  {
+    pixels.setPixelColor(i, color);
+  }
+  pixels.show();
+}
+
+// If your right value is an ANGLE for turning (30..180),
+// convert that to "finger count" (1..5) just for LEDs.
+int angleToLedCount(int angle)
+{
+  if (abs(angle) == 0)   return 0;
+  if (abs(angle) == 30)  return 1;
+  if (abs(angle) == 60)  return 2;
+  if (abs(angle) == 90)  return 3;
+  if (abs(angle) == 120) return 4;
+  return 5; // 150..180 etc
+}
+
+
+// Secret flash mode (bit fast)
 bool secretMode = false;
 unsigned long lastFlashMs = 0;
 int flashIndex = 0;
@@ -90,12 +119,13 @@ uint32_t secretColors[SECRET_COLOR_COUNT];
 
 void initSecretColors()
 {
-  secretColors[0] = pixels.Color(255, 0, 0);     // red
-  secretColors[1] = pixels.Color(128, 0, 128);   // purple
-  secretColors[2] = pixels.Color(0, 0, 255);     // blue
-  secretColors[3] = pixels.Color(255, 255, 0);   // yellow
-  secretColors[4] = pixels.Color(0, 255, 0);     // green
-  secretColors[5] = pixels.Color(255, 192, 203); // pink
+  // your “registered” colours
+  secretColors[0] = pixels.Color(255, 0, 0);     // red (halt)
+  secretColors[1] = pixels.Color(128, 0, 128);   // purple (forward)
+  secretColors[2] = pixels.Color(0, 0, 255);     // blue (backward)
+  secretColors[3] = pixels.Color(255, 255, 0);   // yellow (left)
+  secretColors[4] = pixels.Color(0, 255, 0);     // green (right)
+  secretColors[5] = pixels.Color(255, 192, 203); // pink (secret)
 }
 
 void startSecretFlash()
@@ -138,46 +168,96 @@ void obey(int left, int right)
     move.HALT = true;
     break;
   case 1: // forward
-
     stopSecretFlash();
-    setAllPixels(pixels.Color(128, 0, 128)); // purple
-
+    setPixelsCount(pixels.Color(128, 0, 128), right); // purple, N LEDs
     move.uniformMov(1);
     break;
+
   case 2: // backward
-
     stopSecretFlash();
-    setAllPixels(pixels.Color(0, 0, 255)); // blue
-
+    setPixelsCount(pixels.Color(0, 0, 255), right); // blue, N LEDs
     move.uniformMov(-1);
     break;
+
   case 3: // turn left
   {
     stopSecretFlash();
-    setAllPixels(pixels.Color(255, 255, 0)); // yellow
+    setPixelsCount(pixels.Color(255, 255, 0), angleToLedCount(right)); // yellow, N LEDs
 
-    delay(500);
-    float angle = (float)right;
-  
-    bool success = move.turn(angle);
-    if (!success) {
-      setAllPixels(pixels.Color(255, 255, 255)); // white
+
+    // turn servo to the left
+    slowServoMove(SERVO_CENTER, SERVO_LEFT);
+    delay(300);
+
+    // check obstacle from hc
+    float distLeft = hc1.dist();
+
+
+    if (distLeft < 30 && distLeft != 0)
+    {
+      // obstacle detected
+      tone(BUZZER_PIN, 500); // Send 500Hz sound signal
+
+      move.stopMov();
+      move.HALT = true;
+      duraThresh = -1;
+      curr_cmd = -1;
     }
+    else
+    {
+      // no obstacle detected in back
+      noTone(BUZZER_PIN);
+
+      // obstacleDetected = false;
+      move.HALT = false;
+
+      float angle = (float)right;
+      move.turn(angle);
+    }
+
+    // turn servo back to center
+    slowServoMove(SERVO_LEFT, SERVO_CENTER);
+    delay(300);
 
     break;
   }
   case 4: // turn right
   {
     stopSecretFlash();
-    setAllPixels(pixels.Color(0, 255, 0)); // green
+    setPixelsCount(pixels.Color(0, 255, 0), angleToLedCount(right)); // green, N LEDs
 
-    delay(500);
-    float angle = (float)right;
-    bool success = move.turn(angle);
-    if (!success)
+
+    slowServoMove(SERVO_CENTER, SERVO_RIGHT);
+    delay(300);
+    float distRight = hc1.dist();
+
+    if (distRight < 30 && distRight != 0)
     {
-      setAllPixels(pixels.Color(255, 255, 255)); // white
+      // obstacle detected
+      tone(BUZZER_PIN, 500); // Send 500Hz sound signal
+
+      move.stopMov();
+      move.HALT = true;
+      // these 2 lines causing issue, only turns left/right after a 2nd left/right command
+      // does not turn with the 1st left/right command
+      // but when removed the turning does not work anymore
+      duraThresh = -1;
+      curr_cmd = -1;
     }
+    else
+    {
+      // no obstacle detected
+      noTone(BUZZER_PIN);
+
+      move.HALT = false;
+
+      float angle = (float)right;
+      move.turn(angle);
+    }
+
+    // turn servo back to center
+    slowServoMove(SERVO_RIGHT, SERVO_CENTER);
+    delay(300);
 
     break;
   }
@@ -240,7 +320,7 @@ void slowServoMove(int fromAngle, int toAngle) {
 
 void setup()
 {
-  Serial.begin(115200);
+  Serial.begin(9600);
 
   // initialize the gyroscope
   move.initGyro();
@@ -310,13 +390,8 @@ void loop()
     prev_val = curr_val;
 
     // parse the current command and value
-    Serial.print(commaIndex);
     curr_cmd = data.substring(0, commaIndex).toInt();
-    Serial.print(data.length());
-    String val_str = data.substring(commaIndex + 1, data.length());
-    Serial.print("val_str:");
-    Serial.print(val_str);
-    curr_val = val_str.toInt();
+    curr_val = data.substring(commaIndex + 1, data.length()).toInt();
 
     Serial.print("recieved val:");
     Serial.print(curr_val);
@@ -362,50 +437,6 @@ void loop()
         }
       }
 
-      else if(curr_cmd == 3 || curr_cmd == 4) {
-        float dist;
-
-        if(curr_cmd == 3) { // leeft
-          slowServoMove(SERVO_CENTER, SERVO_LEFT);
-          delay(300);
-          dist = hc1.dist();
-        }
-        else if(curr_cmd == 4) { // right
-          slowServoMove(SERVO_CENTER, SERVO_RIGHT);
-          delay(300);
-          dist = hc1.dist();
-        }
-        
-        if (dist < 30 && dist != 0) {
-          // obstacle detected
-          tone(BUZZER_PIN, 500); // Send 500Hz sound signal
-
-          move.stopMov();
-          move.HALT = true;
-
-          curr_cmd = -1;
-        }
-        else
-        {
-          // no obstacle detected
-          noTone(BUZZER_PIN);
-
-          move.HALT = false;
-          obey(curr_cmd, (float)curr_val);
-        }
-
-        // turn servo back to center
-        if (curr_cmd == 4) {
-          slowServoMove(SERVO_RIGHT, SERVO_CENTER);
-          delay(300);
-        }
-        else if(curr_cmd == 3){
-          slowServoMove(SERVO_LEFT, SERVO_CENTER);
-          delay(300);
-        }
-        
-      }
-
       else
       {
         // Serial.print((float)curr_val);
@@ -419,7 +450,7 @@ void loop()
     Serial.print(curr_cmd);
     Serial.print(" , ");
     Serial.print(curr_val);
-    Serial.println(" ");
+    Serial.print(" ");
 
   }
 
@@ -428,7 +459,7 @@ void loop()
   float fwd_dist = hc1.dist();
   float back_dist = hc2.dist();
 
-  // Serial.println("dist=" + (String)fwd_dist + " ");
+  Serial.println("dist=" + (String)fwd_dist + " ");
 
   // if were going forward, and the obstacle is too close in front
   if ((curr_cmd == 1 && fwd_dist < 30 && fwd_dist != 0) || (curr_cmd == 2 && back_dist < 30 && back_dist != 0))
