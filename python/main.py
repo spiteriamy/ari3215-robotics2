@@ -23,7 +23,7 @@ if not cap.isOpened():
 
 
 # initialise serial for arduino communication
-ser = serial.Serial('/dev/ttyACM0', 115200, timeout=1)
+ser = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
 time.sleep(5) # wait for arduino
 ser.reset_input_buffer()
 print("Arduino:", ser.readline().decode('utf-8').strip())
@@ -184,7 +184,7 @@ with mp_hands.Hands() as hands:
             elif cmd == 0 and value != 0:
                 message = None
             else:
-                message = f"{cmd},{value} \n"
+                message = f"{cmd},{value};"
 
             # instead of sending every time hands are detected
             # so arduino can keep up
