@@ -23,6 +23,29 @@ HCSR04 hc2(TRIG_PIN_2, ECHO_PIN_2); // ultrasonic sensor 2
 // Buzzer pin:
 #define BUZZER_PIN 11
 
+// Rickroll Chorus melody
+int rickrollMelody[] = {
+  NOTE_B4F, NOTE_B4F, NOTE_A4F, NOTE_A4F,
+  NOTE_F5, NOTE_F5, NOTE_E5F, NOTE_B4F, NOTE_B4F, NOTE_A4F, NOTE_A4F, NOTE_E5F, NOTE_E5F, NOTE_C5S, NOTE_C5, NOTE_B4F,
+  NOTE_C5S, NOTE_C5S, NOTE_C5S, NOTE_C5S,
+  NOTE_C5S, NOTE_E5F, NOTE_C5, NOTE_B4F, NOTE_A4F, NOTE_A4F, NOTE_A4F, NOTE_E5F, NOTE_C5S,
+  NOTE_B4F, NOTE_B4F, NOTE_A4F, NOTE_A4F,
+  NOTE_F5, NOTE_F5, NOTE_E5F, NOTE_B4F, NOTE_B4F, NOTE_A4F, NOTE_A4F, NOTE_A5F, NOTE_C5, NOTE_C5S, NOTE_C5, NOTE_B4F,
+  NOTE_C5S, NOTE_C5S, NOTE_C5S, NOTE_C5S,
+  NOTE_C5S, NOTE_E5F, NOTE_C5, NOTE_B4F, NOTE_A4F, 0, NOTE_A4F, NOTE_E5F, NOTE_C5S, 0
+};
+
+int rickrollDurations[] = {
+  8, 8, 8, 8,
+  4, 4, 2, 8, 8, 8, 8, 4, 4, 4, 8, 6,
+  8, 8, 8, 8,
+  4, 4, 4, 8, 6, 6, 6, 3, 1,
+  8, 8, 8, 8,
+  4, 4, 2, 8, 8, 8, 8, 4, 4, 4, 8, 6,
+  8, 8, 8, 8,
+  4, 4, 4, 8, 6, 6, 6, 3, 1, 3
+};
+
 int melody[] = {
   NOTE_E5, NOTE_D5, NOTE_FS4, NOTE_GS4, 
   NOTE_CS5, NOTE_B4, NOTE_D4, NOTE_E4, 
@@ -263,6 +286,27 @@ void playNokiaRingtone() {
   }
 }
 
+void playRickroll() {
+  int size = sizeof(rickrollDurations) / sizeof(rickrollDurations[0]);
+
+  for (int note = 0; note < size; note++) {
+    int duration = 1000 / rickrollDurations[note];
+
+    if (rickrollMelody[note] == 0) {
+      // Rest - just delay without playing a tone
+      delay(duration);
+    } else {
+      tone(BUZZER_PIN, rickrollMelody[note], duration);
+      
+      // duration + 30% gap
+      int pauseBetweenNotes = (duration * 13) / 10;
+      delay(pauseBetweenNotes);
+      
+      noTone(BUZZER_PIN);
+    }
+  }
+}
+
 
 // Smooth Servo Movement
 void slowServoMove(int fromAngle, int toAngle) {
@@ -372,7 +416,8 @@ void loop()
           move.stopMov();       // don't drive while we're delaying
           move.HALT = true;
 
-          playNokiaRingtone();
+          
+          rand() % 4 == 0 ? playRickroll() : playNokiaRingtone();
 
           move.HALT = false;
           obey(5, curr_val);
