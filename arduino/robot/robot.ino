@@ -59,24 +59,43 @@ int curr_cmd = -1, curr_val = -1, prev_cmd = -1, prev_val = -1;
 int startTime = 0;
 int duraThresh = -1; // milliseconds
 
-// TODO: change to a5512a55b49b9d87ce6c20261df19dfda92ef45cdcd7398f0d70464f59b5055f2fec249a84b131207d5bc6dcff4ad5db7724e21928e548dfb4dd5664a4f6250c
-int tweak = 1;
-
-// flags
-int line102 = 0, line126 = 0;
-
 MovementSet move(100); // robot movement control
 
 
 // ---------------- LED HELPERS ----------------
-void setAllPixels(uint32_t color)
+// Turn ON only the first N pixels with a given color (rest OFF)
+void setPixelsCount(uint32_t color, int count)
 {
   pixels.clear();
-  for (int i = 0; i < NUMPIXELS; i++)
+
+  // clamp count to valid range
+  if (count < 0)
+    count = 0;
+  if (count > NUMPIXELS)
+    count = NUMPIXELS;
+
+  for (int i = 0; i < count; i++)
   {
     pixels.setPixelColor(i, color);
   }
   pixels.show();
+}
+
+// If your right value is an ANGLE for turning (30..180),
+// convert that to "finger count" (1..5) just for LEDs.
+int angleToLedCount(int angle)
+{
+  if (abs(angle) == 0)
+    return 0;
+  if (abs(angle) == 30)
+    return 1;
+  if (abs(angle) == 60)
+    return 2;
+  if (abs(angle) == 90)
+    return 3;
+  if (abs(angle) == 120)
+    return 4;
+  return 5; // 150..180 etc
 }
 
 // Secret flash mode
@@ -116,7 +135,7 @@ void updateSecretFlash()
   if (now - lastFlashMs >= FLASH_INTERVAL_MS)
   {
     lastFlashMs = now;
-    setAllPixels(secretColors[flashIndex]);
+    setPixelsCount(secretColors[flashIndex], NUMPIXELS);
     flashIndex = (flashIndex + 1) % SECRET_COLOR_COUNT;
   }
 }
@@ -150,7 +169,7 @@ void obey(int left, int right)
   case 0: // stop
 
     stopSecretFlash();
-    setAllPixels(pixels.Color(255, 0, 0)); // red
+    setPixelsCount(pixels.Color(255, 0, 0), NUMPIXELS); // red
 
     move.stopMov();
     move.HALT = true;
@@ -158,28 +177,28 @@ void obey(int left, int right)
   case 1: // forward
 
     stopSecretFlash();
-    setAllPixels(pixels.Color(128, 0, 128)); // purple
+    setPixelsCount(pixels.Color(128, 0, 128), right); // purple
 
     move.uniformMov(1);
     break;
   case 2: // backward
 
     stopSecretFlash();
-    setAllPixels(pixels.Color(0, 0, 255)); // blue
+    setPixelsCount(pixels.Color(0, 0, 255), right); // blue
 
     move.uniformMov(-1);
     break;
   case 3: // turn left
   {
     stopSecretFlash();
-    setAllPixels(pixels.Color(255, 255, 0)); // yellow
+    setPixelsCount(pixels.Color(255, 255, 0), angleToLedCount(right)); // yellow
 
     delay(500);
     float angle = (float)right;
   
     bool success = move.turn(angle);
     if (!success) {
-      setAllPixels(pixels.Color(255, 255, 255)); // white
+      setPixelsCount(pixels.Color(255, 255, 255), NUMPIXELS); // white
     }
 
     break;
@@ -187,14 +206,14 @@ void obey(int left, int right)
   case 4: // turn right
   {
     stopSecretFlash();
-    setAllPixels(pixels.Color(0, 255, 0)); // green
+    setPixelsCount(pixels.Color(0, 255, 0), angleToLedCount(right)); // green
 
     delay(500);
     float angle = (float)right;
     bool success = move.turn(angle);
     if (!success)
     {
-      setAllPixels(pixels.Color(255, 255, 255)); // white
+      setPixelsCount(pixels.Color(255, 255, 255), NUMPIXELS); // white
     }
 
     break;
@@ -278,7 +297,7 @@ void setup()
   pixels.show();  // Turn OFF all pixels ASAP
 
   initSecretColors();
-  setAllPixels(pixels.Color(0, 0, 0));
+  setPixelsCount(pixels.Color(0, 0, 0), NUMPIXELS); // all off
 
   Serial.println("Arduino ready");
 }
@@ -286,9 +305,6 @@ void setup()
 void loop()
 {
   move.HALT = false;
-
-  line102 = 0;
-  line126 = 0;
 
   // keep flashing while secretMode is active
   if (secretMode)
@@ -303,14 +319,12 @@ void loop()
 
     // LED-only: stop flashing + show red
     stopSecretFlash();
-    setAllPixels(pixels.Color(255, 0, 0));
+    setPixelsCount(pixels.Color(255, 0, 0), NUMPIXELS);
 
     // reset values
     duraThresh = -1;
     prev_cmd = -1;
     prev_val = -1;
-
-    line102 = 1;
   }
 
   if (Serial.available() > 0)
@@ -338,7 +352,6 @@ void loop()
     // send commands to obey if they are different from the previous ones
     if (!(curr_cmd == prev_cmd && curr_val == prev_val))
     {
-      line126 = 1;
       if (curr_cmd == 1 || curr_cmd == 2)
       {
         startTime = (int)millis();    // get the start time
@@ -364,8 +377,7 @@ void loop()
           move.HALT = false;
           obey(5, curr_val);
 
-          move.turn(tweak);
-          tweak = -tweak;
+          move.turn(rand() % 2 == 0 ? -1 : 1);
 
           cyclePos++;
         }
@@ -446,7 +458,7 @@ void loop()
 
     // LED-only: stop flashing + show red
     stopSecretFlash();
-    setAllPixels(pixels.Color(255, 0, 0));
+    setPixelsCount(pixels.Color(255, 0, 0), NUMPIXELS);
 
     duraThresh = -1;
     curr_cmd = -1;
