@@ -1,0 +1,139 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{ragged2e}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\makeatletter
+\def\bstctlcite{\@ifnextchar[{\@bstctlcite}{\@bstctlcite[@auxout]}}
+\def\@bstctlcite[#1]#2{\@bsphack
+  \@for\@citeb:=#2\do{%
+    \edef\@citeb{\expandafter\@firstofone\@citeb}%
+    \if@filesw\immediate\write\csname #1\endcsname{\string\citation{\@citeb}}\fi}%
+  \@esphack}
+\makeatother
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=blue
+}
+
+\lstdefinestyle{py}{
+    basicstyle=\ttfamily\small, % Use a monospaced font
+    keywordstyle=\color{red}, % Keywords in blue
+    stringstyle=\color{blue},   % Strings in red
+    commentstyle=\color{green!60!black}, % Comments in green
+    numbers=left,              % Line numbers on the left
+    numberstyle=\tiny\color{gray}, % Line number style
+    stepnumber=1,              % Line number step
+    showstringspaces=false,    % Do not show spaces in strings
+    breaklines=true,           % Allow line breaking
+    tabsize=4,                 % Set tab size
+    language=Python,            % Set the language for syntax highlighting
+    numbersep=4pt,               % Reduce the distance between line numbers and code (default is 10pt)
+    belowskip=1.5em
+}
+\setlength{\parindent}{0pt}
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+\sloppy
+
+
+\begin{document}
+
+\bstctlcite{IEEEexample:BSTcontrol}
+
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    {\includegraphics[scale=0.5]{umcrest.jpg}\\[2em]}
+    {\Huge\bfseries Robotics 2\\[0.5cm]}
+    {\Large ARI3215\\[0.5cm]}
+    {\Large Assignment Report\\[0.5cm]}
+    {\large Amy Spiteri, Clyde Vella, Daniel Pace\\[0.5cm]}
+    {\large \today}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\justifying
+\noindent
+
+\section{Introduction}
+
+In this assignment we were tasked with designing, implementing and demonstrating an autonomous robot or simulation that can sense, reason, and act autonomously, demonstrating key aspects of embodied Artificial Intelligence (AI). A hardware implementation using the Elegoo Smart Robot Car V4 was chosen. Our robot is a gesture-controlled robot that responds to hand gestures in real-time, captured by a webcam. The system uses computer vision techniques to recognize specific gestures made by the user and translates them into movement commands for the robot. The robot also incorporates an ultrasonic sensor to
+detect nearby obstacles and prevent collisions, and a gyroscope to maintain accuracy with turning.
+
+
+\section{System Design}
+
+% clyde
+
+\section{Implementation}
+To implement the system described above, several components were integrated, including hardware setup, computer vision for gesture recognition, sensor fusion for autonomous behaviour, communication protocols, and control algorithms.
+\subsection{Hardware Integration \& Setup}
+% Arduino platform, sensor wiring, motor control, serial communication setup
+The hardware setup involved configuring the Elegoo Smart Robot Car V4 with an ultrasonic sensor for obstacle detection and a gyroscope for orientation tracking. The robot's motors were connected to the Arduino board, which served as the central controller. The ultrasonic sensor was wired to the appropriate pins on the Arduino to enable distance measurement, while the gyroscope was set up to provide real-time orientation data. Serial communication between the Arduino and a Raspberry Pi was established to facilitate command transmission based on gesture recognition. 
+
+Aside from the default components of the Elegoo Smart Robot Car V4, an additional ultrasonic sensor was added to extend obstacle detection to rear obstacles. A buzzer was also integrated to provide auditory feedback, and a LED strip was included for visual feedback based on the robot's actions.
+
+On the side of the Raspberry Pi, a webcam was connected to capture real-time video feed for gesture recognition. The Raspberry Pi ran a Python script that processed the video input, recognized hand gestures, and sent corresponding movement commands to the Arduino via serial communication. The Raspberry Pi was configured to automatically run the gesture recognition script on startup, ensuring that the system was ready for operation as soon as it was powered on.
+\subsection{Computer Vision Pipeline}
+% MediaPipe hand tracking, gesture detection algorithm, real-time processing
+The computer vision pipeline was implemented using the MediaPipe library for hand detection and tracking. A webcam connected to the Raspberry Pi captured real-time video feed, which was processed to identify hand gestures. The MediaPipe Hands solution provided 21 3D landmarks for each detected hand, which were used to recognize specific gestures such as open hand, closed fist, and pointing. Custom algorithms were developed to interpret these landmarks and classify them into predefined gestures. The recognized gestures were then translated into movement commands for the robot. 
+
+An experimental alternate method of decoding hand gestures, where the angle of the pointing finger is read, and the robot is directed accordingly, was eventually abandoned due to instability and inaccuracy in gesture recognition.
+
+\subsection{Sensor Fusion \& Autonomous Behaviour}
+% How ultrasonic, gyroscope, and gesture inputs are combined for intelligent decision-making
+The robot's autonomous behaviour was achieved by fusing data from the ultrasonic sensors, gyroscope, and gesture recognition system. The ultrasonic sensor monitored the distance to nearby obstacles only when necessary and not continuously, allowing the robot to make real-time decisions to avoid collisions. When an obstacle was detected within a predefined threshold, the robot would halt or change direction based on the last received gesture command.
+The gyroscope provided orientation data, which was used to enhance the robot's turning accuracy. When a turn command was issued via gesture recognition, the gyroscope data ensured that the robot executed the turn precisely, compensating for any drift or inaccuracies in movement.
+
+\subsection{Communication Protocol}
+% Arduino-Python serial communication, instruction encoding/decoding
+The communication between the Raspberry Pi and the Arduino was established using serial communication over USB\@. The Raspberry Pi sent encoded movement commands to the Arduino based on the recognized gestures. A simple protocol was designed where each command corresponded to a specific action, such as moving forward, backward, turning left, or turning right, and by how much. The Arduino decoded these commands and executed the corresponding motor actions. Feedback from the ultrasonic sensor and gyroscope was also sent back to the Raspberry Pi when necessary to inform decision-making processes.
+The serial outputs from the Arduino were read and printed to the console on the Raspberry Pi for real-time monitoring and debugging purposes.
+
+\subsection{Control Algorithms}
+% Movement control, obstacle avoidance logic, gyroscope-assisted turning
+Control of the movements was handled through a custom intermediary library built specifically for the Elegoo Smart Robot Car V4 for our purposes. The main functions included in this library were to move forwards, backwards, turn left, turn right, and stop. Each function took parameters to specify speed and duration where applicable. The obstacle avoidance was handled inside the main control loop, where the ultrasonic sensor readings were checked using custom functions that limited the wait duration for a reading to avoid blocking the main loop. If an obstacle was detected within a certain distance, the robot would stop and wait for a new gesture command before proceeding. The gyroscope data was used to ensure accurate turning by adjusting the turn duration based on the current orientation of the robot.
+
+\subsection{Efficiency \& Robustness}
+% Real-time optimization, error handling, edge case management
+To ensure efficient hand detection and communication between the Raspberry Pi and Arduino, several optimizations were implemented. The gesture recognition algorithm is invoked at a controlled frame rate to balance responsiveness and computational load. The serial communication protocol was designed to minimize latency by using concise command encoding, and a command is only sent when a new gesture is detected, reducing unnecessary data transmission.
+
+Error handling mechanisms were incorporated to manage potential issues such as incorrect gesture execution, communication failures, and sensor malfunctions. The system includes checks to verify the integrity of received commands and sensor data, displaying error messages on the console, and displaying error codes via the LED strip on the robot.
+\section{Testing \& Evaluation}
+% amy
+
+\subsection{Limitations \& Future Improvements}
+\section{Ethical Considerations}
+
+The MediaPipe library was used for hand detection and tracking. Ethical issues to consider when using MediaPipe primarily include issues surrounding data privacy, surveillance, bias, and discrimination.
+
+% Privacy and Surveillance
+
+% Bias and Discrimination
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{section}{References}
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+
+% https://github.com/google-ai-edge/mediapipe/blob/master/docs/solutions/hands.md
+% https://mediapipe.readthedocs.io/en/latest/solutions/hands.html
+% https://roboticsbackend.com/raspberry-pi-arduino-serial-communication/
+% https://projecthub.arduino.cc/tmekinyan/playing-popular-songs-with-arduino-and-a-buzzer-546f4a
+% https://github.com/hibit-dev/buzzer/tree/master
+
+
+\end{document}

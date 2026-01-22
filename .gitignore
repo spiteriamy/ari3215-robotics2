@@ -1,3 +1,8 @@
 .vscode/*
 python/__pycache__/*
 __pycache__/*
+
+documentation/Robotics_Documentation/*
+!documentation/Robotics_Documentation/main.pdf
+!documentation/Robotics_Documentation/main.tex
+!documentation/Robotics_Documentation/umcrest.jpg
