@@ -68,13 +68,15 @@
 
 \section{Introduction}
 
-In this assignment we were tasked with designing, implementing and demonstrating an autonomous robot or simulation that can sense, reason, and act autonomously, demonstrating key aspects of embodied Artificial Intelligence (AI). A hardware implementation using the Elegoo Smart Robot Car V4 was chosen. Our robot is a gesture-controlled robot that responds to hand gestures in real-time, captured by a webcam. The system uses computer vision techniques to recognize specific gestures made by the user and translates them into movement commands for the robot. The robot also incorporates an ultrasonic sensor to
-detect nearby obstacles and prevent collisions, and a gyroscope to maintain accuracy with turning.
+In this assignment, we were tasked with designing, implementing, and demonstrating an autonomous robot or simulation that can sense, reason, and act autonomously, demonstrating key aspects of embodied Artificial Intelligence (AI). A hardware implementation using the Elegoo Smart Robot Car V4 was chosen. Our robot is a gesture-controlled robot that responds to hand gestures in real-time, captured by a webcam. The system uses computer vision techniques to recognize specific gestures made by the user and translates them into movement commands for the robot. The robot also incorporates an ultrasonic sensor to detect nearby obstacles and prevent collisions and a gyroscope to maintain accuracy with turning.\\
 
+All of the project code can be found on the following GitHub repository: \url{https://github.com/spiteriamy/ari3215-robotics2}.
 
 \section{System Design}
 
 % clyde
+
+
 
 \section{Implementation}
 To implement the system described above, several components were integrated, including hardware setup, computer vision for gesture recognition, sensor fusion for autonomous behaviour, communication protocols, and control algorithms.
@@ -110,17 +112,18 @@ Control of the movements was handled through a custom intermediary library built
 To ensure efficient hand detection and communication between the Raspberry Pi and Arduino, several optimizations were implemented. The gesture recognition algorithm is invoked at a controlled frame rate to balance responsiveness and computational load. The serial communication protocol was designed to minimize latency by using concise command encoding, and a command is only sent when a new gesture is detected, reducing unnecessary data transmission.
 
 Error handling mechanisms were incorporated to manage potential issues such as incorrect gesture execution, communication failures, and sensor malfunctions. The system includes checks to verify the integrity of received commands and sensor data, displaying error messages on the console, and displaying error codes via the LED strip on the robot.
+
+
 \section{Testing \& Evaluation}
 % amy
 
 \subsection{Limitations \& Future Improvements}
+
+
 \section{Ethical Considerations}
 
-The MediaPipe library was used for hand detection and tracking. Ethical issues to consider when using MediaPipe primarily include issues surrounding data privacy, surveillance, bias, and discrimination.
+The MediaPipe library was used for hand detection and tracking. Key ethical issues relevant to the use of MediaPipe and similar computer vision libraries include data privacy, surveillance, bias, and discrimination. Because the system relies on a live webcam feed, privacy and surveillance are concerns that should be considered. Individuals in the background may be captured unintentionally without their knowledge or consent. To reduce privacy risks, users should be clearly informed when the camera is active (for example through an LED indicator). Additionally, informed consent should be obtained before recording or testing around other people. Privacy concerns can also be mitigated by avoiding the collection of unnecessary data, such as performing all video processing locally and avoiding storage of footage. If any footage must be stored, users should be informed about retention time, storage location, who has access, and the intended use of the data. Another important ethical concern is bias, fairness, and discrimination. Hand tracking accuracy can perform differently depending on a number of factors. This includes lighting conditions, skin tone, hand size, and anatomical differences. These performance differences may disadvantage users from underrepresented groups if tracking is less reliable for certain types of hands. Additionally, gesture-based interaction may also introduce accessibility issues. For example, users with limited hand mobility, missing fingers, or one-handed users may not be able to use the system effectively. Since the system controls a physical robot in the real world, physical safety is another ethical concern to consider. The use of robots in the real world can lead to robots colliding with objects, people, or pets. Misclassification of gestures can also lead to unintended movements. To mitigate these risks, safety mechanisms such as an emergency stop and safe speed limits should be included.
 
-% Privacy and Surveillance
-
-% Bias and Discrimination
 
 \cleardoublepage
 \phantomsection
