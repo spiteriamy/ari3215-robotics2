@@ -69,7 +69,16 @@ Our project is an implementation of a gesture-controlled robot that responds to 
 
 The robot setup can be seen as pictured below:
 
-[add image]
+<!-- ![Robot Front](documentation/images/robot_1.jpg)
+![Robot Side](documentation/images/robot_2.jpg)
+![Robot Back](documentation/images/robot_3.jpg) -->
+
+<p align="center">
+  <img src="documentation/images/robot_1.jpg" width="30%" />
+  <img src="documentation/images/robot_2.jpg" width="30%" />
+  <img src="documentation/images/robot_3.jpg" width="30%" />
+</p>
+
 
 ### Prerequisites
 
