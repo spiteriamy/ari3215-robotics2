@@ -8,6 +8,8 @@
 \usepackage{listings}
 \usepackage{xcolor}
 
+\newcommand{\ghdir}[2]{\href{#1}{\colorbox{gray!10}{\texttt{#2}}}}
+
 \makeatletter
 \def\bstctlcite{\@ifnextchar[{\@bstctlcite}{\@bstctlcite[@auxout]}}
 \def\@bstctlcite[#1]#2{\@bsphack
@@ -70,7 +72,7 @@
 
 In this assignment, we were tasked with designing, implementing, and demonstrating an autonomous robot or simulation that can sense, reason, and act autonomously, demonstrating key aspects of embodied Artificial Intelligence (AI). A hardware implementation using the Elegoo Smart Robot Car V4 was chosen. Our robot is a gesture-controlled robot that responds to hand gestures in real-time, captured by a webcam. The system uses computer vision techniques to recognize specific gestures made by the user and translates them into movement commands for the robot. The robot also incorporates an ultrasonic sensor to detect nearby obstacles and prevent collisions and a gyroscope to maintain accuracy with turning.\\
 
-All of the project code can be found on the following GitHub repository: \url{https://github.com/spiteriamy/ari3215-robotics2}.
+All of the project code can be found on the following GitHub repository: \url{https://github.com/spiteriamy/ari3215-robotics2}. The final working python code can be found in the subdirectory \ghdir{https://github.com/spiteriamy/ari3215-robotics2/tree/main/python}{python/}. The final working Arduino code can be found in the subdirectory \ghdir{https://github.com/spiteriamy/ari3215-robotics2/tree/main/arduino/robot}{arduino/robot/}.
 
 \section{System Design}
 
